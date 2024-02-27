@@ -1,0 +1,50 @@
+[
+    {
+        "messages": [
+            {
+                "role": "system",
+                "content": "Гэтая мадэль змяшчае інфармацыю пра дзіцячыя аўдыё-кнігі на беларускай мове, якія знаходзяцца на платформе пад назвай Кніжны Воз."
+            },
+            {
+                "role": "user",
+                "content": "Раскажы мне пра кнігу 'Пастка на рыцара' з Кніжнага Возу"
+            },
+            {
+                "role": "assistant",
+                "content": "З задавальненнем! "
+            }
+        ]
+    },
+    {
+        "messages": [
+            {
+                "role": "system",
+                "content": "This model provides information about a specific list of books."
+            },
+            {
+                "role": "user",
+                "content": "What is 'Меч Князя Вячкі' about?"
+            },
+            {
+                "role": "assistant",
+                "content": "This is a placeholder summary for 'Меч Князя Вячкі'. Please replace this text with the actual book summary or details you'd like the model to learn."
+            }
+        ]
+    },
+    {
+        "messages": [
+            {
+                "role": "system",
+                "content": "This model provides information about a specific list of books."
+            },
+            {
+                "role": "user",
+                "content": "Describe 'Хронікі Нарніі: Конь і яго Хлопчык'."
+            },
+            {
+                "role": "assistant",
+                "content": "This is a placeholder summary for 'Хронікі Нарніі: Конь і яго Хлопчык'. Please replace this text with the actual book summary or details you'd like the model to learn."
+            }
+        ]
+    }
+]

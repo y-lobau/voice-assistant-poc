@@ -1,5 +1,6 @@
 {
   "name": "node-template-project",
+  "type": "module",
   "version": "0.0.1",
   "description": "node-template-project",
   "license": "MIT",
@@ -25,14 +26,22 @@
   "devDependencies": {
     "@types/chai": "^4.0.5",
     "@types/mocha": "^2.2.44",
-    "@types/node": "^8.0.53",
+    "@types/node": "^20.11.19",
     "chai": "^4.1.2",
-    "mocha": "^4.0.1",
+    "mocha": "^10.3.0",
     "ts-node": "^3.3.0",
     "tslint": "^5.8.0",
-    "typescript": "^2.6.1"
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=6.10"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "he": "^1.2.0",
+    "node-record-lpcm16": "^1.0.1",
+    "openai": "^4.28.0",
+    "ora": "^8.0.1",
+    "play-sound": "^1.1.6"
   }
 }
