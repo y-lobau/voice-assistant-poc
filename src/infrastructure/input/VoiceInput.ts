@@ -55,6 +55,6 @@ export class VoiceInput implements IInput {
   }
 
   public cleanup() {
-    this.worker.cleanup(); // Ensure this method exists and is public in AudioWorker
+    if (this.worker) this.worker.cleanup(); // Ensure this method exists and is public in AudioWorker
   }
 }

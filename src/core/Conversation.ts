@@ -34,16 +34,18 @@ export class Conversation {
           this.visualFeedback.thinking(false);
           if (responseText) {
             return this.output.output(responseText);
+          } else {
+            return Promise.resolve();
           }
-        })
-        .catch((e) => {
-          this.output.error(e);
-          return this.runLoop();
         })
         .then(() => {
           if (this.mode === "infinite") {
             return this.runLoop();
           }
+        })
+        .catch((e) => {
+          this.output.error(e);
+          return this.runLoop();
         });
     });
   }

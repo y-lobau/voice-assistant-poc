@@ -16,7 +16,10 @@ export class ConsoleOutput implements IOutput, IConsole {
   }
 
   async output(message: string): Promise<void> {
-    console.log(chalk.green(message));
+    return new Promise((resolve) => {
+      console.log(chalk.green(message));
+      resolve();
+    });
   }
 
   public async error(ex: Error): Promise<void> {

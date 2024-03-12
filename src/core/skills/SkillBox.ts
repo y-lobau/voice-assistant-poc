@@ -36,7 +36,9 @@ export class SkillBox {
   }
 
   public serviceMessages(): { role: string; content: string }[] {
-    return this.skills.flatMap((skill) => skill.serviceMessages());
+    return this.skills.flatMap((skill) =>
+      skill.serviceMessages ? skill.serviceMessages() : []
+    );
   }
 
   public use(callbacks: Callback[]): Promise<void> {
