@@ -1,46 +1,42 @@
 import { spawn } from "child_process";
-import { on } from "events";
 import fs from "fs";
-import recorder from "node-record-lpcm16";
+import { PvRecorder } from "@picovoice/pvrecorder-node";
+
+import { IConsole } from "../../../../core/interfaces/IConsole.js";
+import { Silence } from "../manual/Silence.js";
 
 export class AudioWorker {
   private recording = null;
   private isRecording = false;
   private stopped = false;
-  private silenceStart = null;
-  private silenceThreshold = 240; // Adjusted for silence detection
-  private silenceTimeout = 5000; // Duration of silence before stopping
+
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
+  private silence: Silence;
 
-  constructor(private console) {}
+  constructor(private console: IConsole) {
+    this.cleanup();
+    this.silence = new Silence(console);
+  }
 
   public recordMic(): Promise<string | null> {
     return new Promise((resolve, reject) => {
-      this.record(resolve, reject);
+      return this.record(resolve, reject);
     });
   }
 
-  private record(resolve, reject): void {
+  private async record(resolve, reject): Promise<void> {
     this.setupFFmpeg(this.outputFile, () => resolve(this.outputFile), reject);
 
-    this.recording = recorder.record({
-      sampleRate: 16000,
-      threshold: 0,
-      verbose: false,
-      recorder: "sox",
-    });
+    const frameLength = 512;
+    const recorder = new PvRecorder(frameLength);
+    recorder.start();
 
-    this.recording.stream().on("error", (err) => {
-      reject(err);
-      this.console.error(err);
-    });
+    while (recorder.isRecording) {
+      const frame = await recorder.read();
+      this.handleData(frame, resolve, reject);
+    }
 
-    this.recording
-      .stream()
-      .on("data", (data) => this.handleData(data, resolve, reject));
-
-    this.isRecording = true;
     this.console.info(
       'Recording started. Press "q" then "Enter" in the main application to stop.'
     );
@@ -92,40 +88,40 @@ export class AudioWorker {
       return;
     }
 
-    const volume = this.calculateVolume(data);
+    const volume = this.silence.volume(data);
     this.console.debug(`Volume: ${volume}`);
 
-    if (volume > this.silenceThreshold && !this.isRecording) {
-      this.isRecording = true;
-      this.console.info("Detected speech, starting recording...");
-      this.recording.stream().pipe(this.ffmpeg.stdin);
-    } else if (this.isRecording) {
-      if (!this.silenceStart) {
-        this.silenceStart = Date.now();
-      } else if (Date.now() - this.silenceStart > this.silenceTimeout) {
-        this.console.info("Silence detected, stopping recording...");
-        this.stop();
+    if (!this.silence.isSilence(volume)) {
+      this.silence.resetStarted();
 
-        resolve(this.isRecording ? this.outputFile : null);
+      if (!this.isRecording) {
+        this.console.debug("Voice detected, writing to FFmpeg...");
+        this.isRecording = true;
+        this.recording.stream().pipe(this.ffmpeg.stdin);
       }
+    } else if (!this.silence.isStarted()) {
+      this.silence.setStarted();
+    } else if (this.silence.isTimedOut() && this.isRecording) {
+      this.console.info("Silence detected, stopping recording...");
+      const file = this.isRecording ? this.outputFile : null;
+      this.stop().then(() => resolve(file));
     }
   }
 
-  private calculateVolume(data): number {
-    let sum = 0;
-    for (let i = 0; i < data.length; i += 2) {
-      let sample = data.readInt16LE(i);
-      sum += sample * sample;
-    }
-    return Math.sqrt(sum / (data.length / 2));
-  }
+  private stop(): Promise<string | null> {
+    this.stopped = true;
 
-  public stop() {
     if (this.recording) {
       this.recording.stop();
-      this.ffmpeg.stdin.end();
-      this.console.info("Recording stopped.");
-      this.stopped = true;
+
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          this.ffmpeg.stdin.end();
+          this.console.info("Recording stopped.");
+
+          resolve(this.isRecording ? this.outputFile : null);
+        }, 100);
+      });
     }
   }
 
@@ -134,7 +130,7 @@ export class AudioWorker {
     if (fs.existsSync(this.outputFile)) {
       fs.unlink(this.outputFile, (err) => {
         if (err) {
-          this.console.error(
+          this.console.errorStr(
             `Failed to delete file at ${this.outputFile}: ${err}`
           );
         } else {

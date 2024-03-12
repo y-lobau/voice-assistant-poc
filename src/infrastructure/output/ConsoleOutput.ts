@@ -16,25 +16,23 @@ export class ConsoleOutput implements IOutput, IConsole {
   }
 
   async output(message: string): Promise<void> {
-    this.stopLoading();
     console.log(chalk.green(message));
   }
 
-  public error(ex: Error): void {
+  public async error(ex: Error): Promise<void> {
     this.errorStr(ex.stack || ex.message || ex.toString());
     this.errorStr(chalk.red(Messages.UNEXPECTED_ERROR));
   }
 
   public errorStr(message: string): void {
-    this.stopLoading();
     console.log(chalk.red(message));
   }
 
-  public setLoading(): void {
-    // this.spinner.start();
+  public setLoading(text: string): void {
+    this.spinner.start(text);
   }
 
   public stopLoading(): void {
-    // this.spinner.stop();
+    this.spinner.stop();
   }
 }

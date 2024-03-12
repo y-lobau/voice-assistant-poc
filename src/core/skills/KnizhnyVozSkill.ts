@@ -11,14 +11,13 @@ export class KnizhnyVozSkill implements ISkill {
   player = Play({ player: "mpg123" });
   playerProcess: Play.ChildProcess | null = null;
 
-  systemPrompt =
-    "Ты беларус,размаўляеш па-беларуску.Ветлівы,культурны.Кніжны Воз-платформа дзіцячых аўдыёкніг.";
+  systemPrompt = "Кніжны Воз-платформа дзіцячых аўдыёкніг.";
 
   constructor() {
     this.functions = [
       new SkillFunction(
         "playBook",
-        "Выкарыстоўвай гэту функцыю для загрузкі ўсіх кніг з Кніжнага Воза",
+        "Выкарыстоўвай гэту функцыю для праігрывання пэўнай кнігі з Кніжнага Воза",
         {
           type: "object",
           properties: {

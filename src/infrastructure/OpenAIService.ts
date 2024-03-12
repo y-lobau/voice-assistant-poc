@@ -9,13 +9,18 @@ import { AIResponse } from "../core/models/AIResponse.js";
 import { Callback } from "../core/models/Callback.js";
 import { IAI } from "../core/interfaces/IAI.js";
 import { SkillFunction } from "../core/models/SkillFunction.js";
+import { IConsole } from "../core/interfaces/IConsole.js";
 
 export class OpenAIService implements IAI {
-  skills: SkillBox;
   openai = new OpenAI();
-  model: string;
+  defaultSystemMessage =
+    "Ты адказваеш толькі на беларускай мове.Калі адказ змяшчае толькі лічбы-адказвай словамі";
 
-  constructor(model: string, skills: SkillBox) {
+  constructor(
+    private model: string,
+    public skills: SkillBox,
+    private console: IConsole
+  ) {
     this.skills = skills;
     this.model = model;
   }
@@ -23,7 +28,17 @@ export class OpenAIService implements IAI {
   public sendText(text: string): Promise<AIResponse> {
     const skillsMessages = this.skills.serviceMessages();
 
-    const messages = skillsMessages.concat({ role: "user", content: text });
+    const messages = skillsMessages
+      .concat({
+        role: "system",
+        content: this.defaultSystemMessage,
+      })
+      .concat({ role: "user", content: text });
+
+    this.console.debug(
+      `Sending messages to model ${this.model}: ${JSON.stringify(messages)}`
+    );
+
     return this.openai.chat.completions
       .create({
         messages: messages as ChatCompletionMessage[],

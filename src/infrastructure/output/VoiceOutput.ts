@@ -5,29 +5,41 @@ import Play from "play-sound";
 import { IOutput } from "../../core/interfaces/IOutput.js";
 import { Messages } from "../../Messages.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
+import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback.js";
 
 export default class VoiceOutput implements IOutput {
   speechFile: string = path.resolve("./speech.mp3");
   player = Play({ player: "mpg123" });
 
-  constructor(private openai: OpenAI, private console: IConsole) {}
-  error(ex) {
+  constructor(
+    private openai: OpenAI,
+    private console: IConsole,
+    private visualFeedback: IVisualFeedback
+  ) {}
+
+  error(ex): Promise<void> {
     this.console.error(ex);
-    this.textToVoice(Messages.UNEXPECTED_ERROR);
+    return new Promise((resolve, reject) => {
+      return this.textToVoice(Messages.UNEXPECTED_ERROR, resolve, reject);
+    });
   }
 
   output(message: string): Promise<void> {
-    // You may need to adjust the method for generating audio from text
-    return this.textToVoice(message);
+    return new Promise((resolve, reject) => {
+      return this.textToVoice(message, resolve, reject);
+    });
   }
 
-  private async textToVoice(text: string) {
+  private async textToVoice(text: string, resolve, reject) {
+    this.visualFeedback.thinking();
     const mp3 = await this.openai.audio.speech.create({
       model: "tts-1",
       voice: "echo",
       input: text,
     });
+    this.visualFeedback.thinking(false);
 
+    this.visualFeedback.talking();
     const buffer: Buffer = Buffer.from(await mp3.arrayBuffer());
     fs.writeFileSync(this.speechFile, buffer);
 
@@ -35,6 +47,7 @@ export default class VoiceOutput implements IOutput {
     this.player.play(this.speechFile, (err: Error | null) => {
       if (err) {
         console.error("Failed to play the file:", err);
+        reject(err);
       } else {
         // No error, file played successfully, now delete the file
         fs.unlink(
@@ -47,6 +60,8 @@ export default class VoiceOutput implements IOutput {
             }
           }
         );
+        this.visualFeedback.talking(false);
+        resolve();
       }
     });
   }

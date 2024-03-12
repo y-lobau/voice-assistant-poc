@@ -3,6 +3,6 @@ export interface IConsole {
   errorStr(message: string): void;
   error(ex: Error);
   debug(message: string): void;
-  setLoading(): void;
+  setLoading(text: string): void;
   stopLoading(): void;
 }

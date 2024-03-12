@@ -1,68 +1,61 @@
-import { ConsoleOutput } from "../infrastructure/output/ConsoleOutput.js";
 import { IAI } from "./interfaces/IAI.js";
 import { IConsole } from "./interfaces/IConsole.js";
 import { IInput } from "./interfaces/IInput.js";
 import { IOutput } from "./interfaces/IOutput.js";
+import { IVisualFeedback } from "./interfaces/IVisualFeedback.js";
 import { AIResponse } from "./models/AIResponse.js";
 import { SkillBox } from "./skills/SkillBox.js";
 
 export class Conversation {
-  private input: IInput;
-  private output: IOutput;
-  private ai: IAI;
   private defaultQuestion = "Чым я магу вам дапамагчы?";
-  private skills: SkillBox;
-  private console: IConsole;
 
   constructor(
-    input: IInput,
-    output: IOutput,
-    ai: IAI,
-    skills: SkillBox,
-    console: IConsole
-  ) {
-    this.input = input;
-    this.output = output;
-    this.ai = ai;
-    this.skills = skills;
-    this.console = console;
-  }
+    private input: IInput,
+    private output: IOutput,
+    private ai: IAI,
+    private skills: SkillBox,
+    private console: IConsole,
+    private visualFeedback: IVisualFeedback,
+    private mode: "infinite" | "single" = "infinite"
+  ) {}
 
-  private continueConversation(output: string | null): Promise<void> {
-    if (output) {
-      this.output.output(output);
-    }
-    return this.runLoop();
+  private startConversation(): Promise<void> {
+    return this.output.output(this.defaultQuestion).then(() => this.runLoop());
   }
 
   private runLoop(): Promise<void> {
     return this.input.input().then((input: string) => {
-      this.console.setLoading();
+      this.visualFeedback.thinking();
 
       return this.ai
         .sendText(input)
-        .then((response: AIResponse) => {
-          return this.handleAIResponse(response);
+        .then((response: AIResponse) => this.handleAIResponse(response))
+        .then((responseText) => {
+          this.visualFeedback.thinking(false);
+          if (responseText) {
+            return this.output.output(responseText);
+          }
         })
         .catch((e) => {
           this.output.error(e);
           return this.runLoop();
         })
-        .finally(this.console.stopLoading);
+        .then(() => {
+          if (this.mode === "infinite") {
+            return this.runLoop();
+          }
+        });
     });
   }
 
-  private handleAIResponse(response: AIResponse): Promise<void> {
+  private handleAIResponse(response: AIResponse): Promise<string | null> {
     this.console.info(`AI response: ${JSON.stringify(response)}`);
-
-    return this.skills
-      .use(response.callbacks)
-      .then(() => this.continueConversation(response.content));
+    return this.skills.use(response.callbacks).then(() => response.content);
   }
 
   public async start(): Promise<void> {
     return this.skills.init().then(() => {
-      return this.continueConversation(this.defaultQuestion);
+      return this.startConversation();
     });
   }
 }

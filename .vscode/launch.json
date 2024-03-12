@@ -42,9 +42,6 @@
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "sourceMaps": true,
-      "env": {
-        "OPENAI_API_KEY": "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"
-      },
       "console": "integratedTerminal"
     },
     {
