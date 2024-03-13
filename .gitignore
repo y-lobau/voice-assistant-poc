@@ -5,3 +5,4 @@ npm-debug.log
 dist
 output.mp3
 .env
+package-lock.json
