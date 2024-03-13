@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import { IConsole } from "../../core/interfaces/IConsole";
 
-export class Player {
+export class AudioPlayer {
   constructor(private console: IConsole) {}
 
   private playRawAudio(dataBuffer, resolve, reject) {

@@ -10,19 +10,17 @@ import { Callback } from "../core/models/Callback.js";
 import { IAI } from "../core/interfaces/IAI.js";
 import { SkillFunction } from "../core/models/SkillFunction.js";
 import { IConsole } from "../core/interfaces/IConsole.js";
-import path from "path";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
   defaultSystemMessage =
     "Ты адказваеш толькі на беларускай мове.Калі адказ змяшчае толькі лічбы-адказвай словамі";
-  speechFile: string = path.resolve("./speech.mp3");
 
   constructor(private model: string, private console: IConsole) {
     this.model = model;
   }
 
-  textToVoiceBytes(text: string): Promise<Buffer> {
+  textToVoice(text: string): Promise<Buffer> {
     return this.openai.audio.speech
       .create({
         model: "tts-1",
@@ -31,24 +29,6 @@ export class OpenAIService implements IAI {
       })
       .then((mp3) => {
         return mp3.arrayBuffer().then((array) => Buffer.from(array));
-      });
-  }
-
-  public textToVoice(text: string): Promise<string> {
-    return this.openai.audio.speech
-      .create({
-        model: "tts-1",
-        voice: "echo",
-        input: text,
-      })
-      .then((mp3) => {
-        return mp3
-          .arrayBuffer()
-          .then((array) => Buffer.from(array))
-          .then((buffer) => {
-            fs.writeFileSync(this.speechFile, buffer);
-            return this.speechFile;
-          });
       });
   }
 

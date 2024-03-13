@@ -13,6 +13,8 @@ import { VoiceInput } from "./infrastructure/input/VoiceInput.js";
 import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisualization.js";
 import { TimeSkill } from "./core/skills/TimeSkill.js";
 import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.js";
+import { AudioPlayer } from "./infrastructure/output/AudioPlayer.js";
+import { DeviceVisualization } from "./infrastructure/visualisation/DeviceVisualization.js";
 
 dotenv.config();
 
@@ -22,6 +24,7 @@ const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 
 const consoleOutput = new ConsoleOutput();
 const aiService = new OpenAIService(gpt4Model, consoleOutput);
+const audioPlayer = new AudioPlayer(consoleOutput);
 
 // Define profiles
 const profiles = {
@@ -40,7 +43,25 @@ const profiles = {
     output: "VoiceOutput",
     visualization: "NoVisualization",
   },
+  "device-console": {
+    input: "ConsoleInput",
+    output: "ConsoleOutput",
+    visualization: "DeviceVisualization",
+  },
 };
+
+function getVisualization(visualizationName) {
+  switch (visualizationName) {
+    case "ConsoleVisualization":
+      return new ConsoleVisualization(consoleOutput);
+    case "NoVisualization":
+      return new NoVisualization();
+    case "DeviceVisualization":
+      return new DeviceVisualization(consoleOutput);
+    default:
+      return new NoVisualization();
+  }
+}
 
 // Parse CLI arguments for profile selection
 const argv = yargs(hideBin(process.argv)).option("profile", {
@@ -53,10 +74,7 @@ const argv = yargs(hideBin(process.argv)).option("profile", {
 const selectedProfile = profiles[argv.profile];
 
 // Visualization configuration
-const visualization =
-  selectedProfile.visualization === "NoVisualization"
-    ? new NoVisualization()
-    : new ConsoleVisualization(consoleOutput);
+const visualization = getVisualization(selectedProfile.visualization);
 
 // Input and Output configuration using a factory approach
 const componentFactory = {
@@ -69,7 +87,8 @@ const componentFactory = {
       process.env.PICOVOICE_API_KEY
     ),
   ConsoleOutput: () => consoleOutput,
-  VoiceOutput: () => new VoiceOutput(aiService, consoleOutput, visualization),
+  VoiceOutput: () =>
+    new VoiceOutput(aiService, consoleOutput, visualization, audioPlayer),
 };
 
 const input = componentFactory[selectedProfile.input]();

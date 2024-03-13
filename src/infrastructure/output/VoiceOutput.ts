@@ -1,19 +1,16 @@
-import * as fs from "fs";
-import Play from "play-sound";
 import { IOutput } from "../../core/interfaces/IOutput.js";
 import { Messages } from "../../Messages.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
 import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback.js";
 import { IAI } from "../../core/interfaces/IAI.js";
-import { Player } from "./Player.js";
+import { AudioPlayer } from "./AudioPlayer.js";
 
 export default class VoiceOutput implements IOutput {
-  player = Play({ player: "mpg123" });
-
   constructor(
     private ai: IAI,
     private console: IConsole,
-    private visualFeedback: IVisualFeedback
+    private visualFeedback: IVisualFeedback,
+    private audioPlayer: AudioPlayer
   ) {}
 
   error(ex): Promise<void> {
@@ -32,50 +29,15 @@ export default class VoiceOutput implements IOutput {
   private async textToVoice(text: string, resolve, reject): Promise<void> {
     this.visualFeedback.thinking();
 
-    // return this.ai.textToVoice(text).then((audioFilePath: string) => {
-    //   this.visualFeedback.thinking(false);
-    //   this.visualFeedback.talking();
-
-    //   this.playAudio(audioFilePath, resolve, reject).then(() =>
-    //     this.visualFeedback.talking(false)
-    //   );
-    // });
-
-    return this.ai.textToVoiceBytes(text).then((buffer: Buffer) => {
+    return this.ai.textToVoice(text).then((buffer: Buffer) => {
       this.visualFeedback.thinking(false);
       this.visualFeedback.talking();
 
-      return new Player(this.console)
+      return this.audioPlayer
         .play(buffer)
         .then(() => this.visualFeedback.talking(false))
         .catch(reject)
         .then(resolve);
-    });
-  }
-
-  private async playAudio(
-    audioFilePath: string,
-    resolve,
-    reject
-  ): Promise<void> {
-    // Play the audio file through the speakers
-    this.console.debug("Playing the file: " + audioFilePath);
-    return this.player.play(audioFilePath, (err: Error | null) => {
-      if (err) {
-        console.error("Failed to play the file:", err);
-        reject(err);
-      } else {
-        // No error, file played successfully, now delete the file
-        fs.unlink(audioFilePath, (unlinkErr: NodeJS.ErrnoException | null) => {
-          if (unlinkErr) {
-            console.error("Failed to delete the file:", unlinkErr);
-          } else {
-            console.debug("File deleted successfully.");
-          }
-        });
-        this.visualFeedback.talking(false);
-        resolve();
-      }
     });
   }
 }
