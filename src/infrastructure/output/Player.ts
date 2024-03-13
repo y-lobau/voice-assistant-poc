@@ -1,23 +1,31 @@
 import { spawn } from "child_process";
+import { IConsole } from "../../core/interfaces/IConsole";
 
 export class Player {
-  private playRawAudio(dataBuffer, resolve, reject) {
-    // Spawn aplay as a child process
-    const aplay = spawn("aplay", ["-f", "cd"]);
+  constructor(private console: IConsole) {}
 
-    // Handle error output
-    aplay.stderr.on("data", (data) => {
-      console.error(`stderr: ${data}`);
+  private playRawAudio(dataBuffer, resolve, reject) {
+    const mpg123 = spawn("mpg123", ["-"]);
+
+    mpg123.stderr.on("data", (data) => {
+      this.console.errorStr(`stderr: ${data}`);
     });
 
-    // Write the audio data to aplay's stdin
-    aplay.stdin.write(dataBuffer);
-    aplay.stdin.end();
+    mpg123.stdout.on("data", (data) => {
+      this.console.debug(`stdout: ${data}`);
+    });
 
-    // Listen for when the aplay process finishes
-    aplay.on("close", (code) => {
-      console.log(`aplay process exited with code ${code}`);
-      resolve();
+    mpg123.stdin.write(dataBuffer);
+    mpg123.stdin.end();
+
+    mpg123.on("close", (code) => {
+      if (code === 0) {
+        this.console.debug("mpg123 finished playing the audio successfully.");
+        resolve();
+      } else {
+        this.console.errorStr(`mpg123 exited with code ${code}`);
+        reject(new Error(`mpg123 exited with code ${code}`));
+      }
     });
   }
 

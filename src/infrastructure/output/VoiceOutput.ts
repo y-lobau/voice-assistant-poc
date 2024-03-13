@@ -45,7 +45,11 @@ export default class VoiceOutput implements IOutput {
       this.visualFeedback.thinking(false);
       this.visualFeedback.talking();
 
-      new Player().play(buffer).then(() => this.visualFeedback.talking(false));
+      return new Player(this.console)
+        .play(buffer)
+        .then(() => this.visualFeedback.talking(false))
+        .catch(reject)
+        .then(resolve);
     });
   }
 
