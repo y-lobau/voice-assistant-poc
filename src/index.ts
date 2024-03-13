@@ -25,6 +25,8 @@ const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 const consoleOutput = new ConsoleOutput();
 const aiService = new OpenAIService(gpt4Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
+let deviceVisualization: DeviceVisualization;
+let voiceInput: VoiceInput;
 
 // Define profiles
 const profiles = {
@@ -57,7 +59,7 @@ function getVisualization(visualizationName) {
     case "NoVisualization":
       return new NoVisualization();
     case "DeviceVisualization":
-      return new DeviceVisualization(consoleOutput);
+      return (deviceVisualization = new DeviceVisualization(consoleOutput));
     default:
       return new NoVisualization();
   }
@@ -80,12 +82,12 @@ const visualization = getVisualization(selectedProfile.visualization);
 const componentFactory = {
   ConsoleInput: () => new ConsoleInput(),
   VoiceInput: () =>
-    new VoiceInput(
+    (voiceInput = new VoiceInput(
       aiService,
       consoleOutput,
       visualization,
       process.env.PICOVOICE_API_KEY
-    ),
+    )),
   ConsoleOutput: () => consoleOutput,
   VoiceOutput: () =>
     new VoiceOutput(aiService, consoleOutput, visualization, audioPlayer),
@@ -110,6 +112,13 @@ async function run() {
 await run();
 
 consoleOutput.debug("Ending the program");
+
+process.on("exit", (code) => {
+  skills.cleanup();
+
+  if (deviceVisualization) deviceVisualization.cleanup();
+  if (voiceInput) voiceInput.cleanup();
+});
 
 // await skill.loadAndPopulateAllBooks();
 
