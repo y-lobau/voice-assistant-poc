@@ -4,31 +4,60 @@ import {
   ChatCompletionMessage,
   ChatCompletionTool,
 } from "openai/resources";
-import { SkillBox } from "../core/skills/SkillBox.js";
+import * as fs from "fs";
 import { AIResponse } from "../core/models/AIResponse.js";
 import { Callback } from "../core/models/Callback.js";
 import { IAI } from "../core/interfaces/IAI.js";
 import { SkillFunction } from "../core/models/SkillFunction.js";
 import { IConsole } from "../core/interfaces/IConsole.js";
+import path from "path";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
   defaultSystemMessage =
     "Ты адказваеш толькі на беларускай мове.Калі адказ змяшчае толькі лічбы-адказвай словамі";
+  speechFile: string = path.resolve("./speech.mp3");
 
-  constructor(
-    private model: string,
-    public skills: SkillBox,
-    private console: IConsole
-  ) {
-    this.skills = skills;
+  constructor(private model: string, private console: IConsole) {
     this.model = model;
   }
 
-  public sendText(text: string): Promise<AIResponse> {
-    const skillsMessages = this.skills.serviceMessages();
+  public textToVoice(text: string): Promise<string> {
+    return this.openai.audio.speech
+      .create({
+        model: "tts-1",
+        voice: "echo",
+        input: text,
+      })
+      .then((mp3) => {
+        return mp3
+          .arrayBuffer()
+          .then((array) => Buffer.from(array))
+          .then((buffer) => {
+            fs.writeFileSync(this.speechFile, buffer);
+            return this.speechFile;
+          });
+      });
+  }
 
-    const messages = skillsMessages
+  public voiceToText(filePath: string): Promise<string> {
+    const transcription = this.openai.audio.transcriptions.create({
+      file: fs.createReadStream(filePath),
+      model: "whisper-1",
+      language: "be",
+    });
+    return transcription.then((res) => {
+      this.console.info("Transcription: " + res.text);
+      return res.text;
+    });
+  }
+
+  public sendText(
+    text: string,
+    systemMessages: {}[],
+    functions: SkillFunction[]
+  ): Promise<AIResponse> {
+    const messages = systemMessages
       .concat({
         role: "system",
         content: this.defaultSystemMessage,
@@ -43,13 +72,11 @@ export class OpenAIService implements IAI {
       .create({
         messages: messages as ChatCompletionMessage[],
         model: this.model,
-        tools: this.functionDefinitions as Array<ChatCompletionTool>,
+        tools: functions.map(
+          this.skillFunctionToDefinition
+        ) as Array<ChatCompletionTool>,
       })
       .then((completion) => this.handleCompletion(completion));
-  }
-
-  private get functionDefinitions(): ChatCompletionTool[] {
-    return this.skills.functionDefinitions.map(this.skillFunctionToDefinition);
   }
 
   private skillFunctionToDefinition(func: SkillFunction): ChatCompletionTool {

@@ -1,7 +1,12 @@
 import { AIResponse } from "../models/AIResponse.js";
-import { SkillBox } from "../skills/SkillBox.js";
+import { SkillFunction } from "../models/SkillFunction.js";
 
 export interface IAI {
-  skills: SkillBox;
-  sendText(text: string): Promise<AIResponse>;
+  voiceToText(filePath: string): Promise<string>;
+  textToVoice(text: string): Promise<string>;
+  sendText(
+    text: string,
+    systemMessages: {}[],
+    functions: SkillFunction[]
+  ): Promise<AIResponse>;
 }

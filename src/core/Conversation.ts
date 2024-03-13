@@ -27,8 +27,10 @@ export class Conversation {
     return this.input.input().then((input: string) => {
       this.visualFeedback.thinking();
 
+      const skillsMessages = this.skills.serviceMessages();
+
       return this.ai
-        .sendText(input)
+        .sendText(input, skillsMessages, this.skills.functionDefinitions)
         .then((response: AIResponse) => this.handleAIResponse(response))
         .then((responseText) => {
           this.visualFeedback.thinking(false);

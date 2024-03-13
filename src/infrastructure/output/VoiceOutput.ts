@@ -1,18 +1,16 @@
-import OpenAI from "openai";
-import * as path from "path";
 import * as fs from "fs";
 import Play from "play-sound";
 import { IOutput } from "../../core/interfaces/IOutput.js";
 import { Messages } from "../../Messages.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
 import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback.js";
+import { IAI } from "../../core/interfaces/IAI.js";
 
 export default class VoiceOutput implements IOutput {
-  speechFile: string = path.resolve("./speech.mp3");
   player = Play({ player: "mpg123" });
 
   constructor(
-    private openai: OpenAI,
+    private ai: IAI,
     private console: IConsole,
     private visualFeedback: IVisualFeedback
   ) {}
@@ -30,36 +28,38 @@ export default class VoiceOutput implements IOutput {
     });
   }
 
-  private async textToVoice(text: string, resolve, reject) {
+  private async textToVoice(text: string, resolve, reject): Promise<void> {
     this.visualFeedback.thinking();
-    const mp3 = await this.openai.audio.speech.create({
-      model: "tts-1",
-      voice: "echo",
-      input: text,
+
+    return this.ai.textToVoice(text).then((audioFilePath: string) => {
+      this.visualFeedback.thinking(false);
+      this.visualFeedback.talking();
+
+      this.playAudio(audioFilePath, resolve, reject).then(() =>
+        this.visualFeedback.talking(false)
+      );
     });
-    this.visualFeedback.thinking(false);
+  }
 
-    this.visualFeedback.talking();
-    const buffer: Buffer = Buffer.from(await mp3.arrayBuffer());
-    fs.writeFileSync(this.speechFile, buffer);
-
+  private async playAudio(
+    audioFilePath: string,
+    resolve,
+    reject
+  ): Promise<void> {
     // Play the audio file through the speakers
-    this.player.play(this.speechFile, (err: Error | null) => {
+    return this.player.play(audioFilePath, (err: Error | null) => {
       if (err) {
         console.error("Failed to play the file:", err);
         reject(err);
       } else {
         // No error, file played successfully, now delete the file
-        fs.unlink(
-          this.speechFile,
-          (unlinkErr: NodeJS.ErrnoException | null) => {
-            if (unlinkErr) {
-              console.error("Failed to delete the file:", unlinkErr);
-            } else {
-              console.debug("File deleted successfully.");
-            }
+        fs.unlink(audioFilePath, (unlinkErr: NodeJS.ErrnoException | null) => {
+          if (unlinkErr) {
+            console.error("Failed to delete the file:", unlinkErr);
+          } else {
+            console.debug("File deleted successfully.");
           }
-        );
+        });
         this.visualFeedback.talking(false);
         resolve();
       }

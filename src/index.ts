@@ -16,14 +16,12 @@ import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.
 
 dotenv.config();
 
-// Initialize shared components
-const consoleOutput = new ConsoleOutput();
-const skills = new SkillBox([
-  new KnizhnyVozSkill(),
-  new TimeSkill(consoleOutput),
-]);
 const gpt4Model = "gpt-4-0125-preview";
-const aiService = new OpenAIService(gpt4Model, skills, consoleOutput);
+const gpt3Model = "gpt-3.5-turbo-1106";
+const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
+
+const consoleOutput = new ConsoleOutput();
+const aiService = new OpenAIService(gpt4Model, consoleOutput);
 
 // Define profiles
 const profiles = {
@@ -65,18 +63,19 @@ const componentFactory = {
   ConsoleInput: () => new ConsoleInput(),
   VoiceInput: () =>
     new VoiceInput(
-      aiService.openai,
+      aiService,
       consoleOutput,
       visualization,
       process.env.PICOVOICE_API_KEY
     ),
   ConsoleOutput: () => consoleOutput,
-  VoiceOutput: () =>
-    new VoiceOutput(aiService.openai, consoleOutput, visualization),
+  VoiceOutput: () => new VoiceOutput(aiService, consoleOutput, visualization),
 };
 
 const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
+
+const skills = new SkillBox([new KnizhnyVozSkill(), new TimeSkill(output)]);
 
 async function run() {
   return new Conversation(
