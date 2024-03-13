@@ -47,6 +47,7 @@ export default class VoiceOutput implements IOutput {
     reject
   ): Promise<void> {
     // Play the audio file through the speakers
+    this.console.debug("Playing the file: " + audioFilePath);
     return this.player.play(audioFilePath, (err: Error | null) => {
       if (err) {
         console.error("Failed to play the file:", err);
