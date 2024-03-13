@@ -66,7 +66,7 @@ function getVisualization(visualizationName) {
 // Parse CLI arguments for profile selection
 const argv = yargs(hideBin(process.argv)).option("profile", {
   describe: "Predefined profile for the application mode",
-  choices: ["console", "voice", "console-voice"],
+  choices: ["console", "voice", "console-voice", "device-console"],
   demandOption: true, // Require profile selection
 }).argv;
 
