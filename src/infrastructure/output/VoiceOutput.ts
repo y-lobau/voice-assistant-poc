@@ -5,6 +5,7 @@ import { Messages } from "../../Messages.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
 import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback.js";
 import { IAI } from "../../core/interfaces/IAI.js";
+import { Player } from "./Player.js";
 
 export default class VoiceOutput implements IOutput {
   player = Play({ player: "mpg123" });
@@ -31,13 +32,20 @@ export default class VoiceOutput implements IOutput {
   private async textToVoice(text: string, resolve, reject): Promise<void> {
     this.visualFeedback.thinking();
 
-    return this.ai.textToVoice(text).then((audioFilePath: string) => {
+    // return this.ai.textToVoice(text).then((audioFilePath: string) => {
+    //   this.visualFeedback.thinking(false);
+    //   this.visualFeedback.talking();
+
+    //   this.playAudio(audioFilePath, resolve, reject).then(() =>
+    //     this.visualFeedback.talking(false)
+    //   );
+    // });
+
+    return this.ai.textToVoiceBytes(text).then((buffer: Buffer) => {
       this.visualFeedback.thinking(false);
       this.visualFeedback.talking();
 
-      this.playAudio(audioFilePath, resolve, reject).then(() =>
-        this.visualFeedback.talking(false)
-      );
+      new Player().play(buffer).then(() => this.visualFeedback.talking(false));
     });
   }
 

@@ -22,6 +22,18 @@ export class OpenAIService implements IAI {
     this.model = model;
   }
 
+  textToVoiceBytes(text: string): Promise<Buffer> {
+    return this.openai.audio.speech
+      .create({
+        model: "tts-1",
+        voice: "echo",
+        input: text,
+      })
+      .then((mp3) => {
+        return mp3.arrayBuffer().then((array) => Buffer.from(array));
+      });
+  }
+
   public textToVoice(text: string): Promise<string> {
     return this.openai.audio.speech
       .create({
