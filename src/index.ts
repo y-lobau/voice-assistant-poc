@@ -50,6 +50,11 @@ const profiles = {
     output: "ConsoleOutput",
     visualization: "DeviceVisualization",
   },
+  "device-console-voice": {
+    input: "ConsoleInput",
+    output: "VoiceOutput",
+    visualization: "DeviceVisualization",
+  },
 };
 
 function getVisualization(visualizationName) {
@@ -68,7 +73,7 @@ function getVisualization(visualizationName) {
 // Parse CLI arguments for profile selection
 const argv = yargs(hideBin(process.argv)).option("profile", {
   describe: "Predefined profile for the application mode",
-  choices: ["console", "voice", "console-voice", "device-console"],
+  choices: Object.keys(profiles),
   demandOption: true, // Require profile selection
 }).argv;
 
