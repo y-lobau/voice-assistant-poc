@@ -1,19 +1,16 @@
-import Play from "play-sound";
-import { Book, BookChapter, BookShort } from "../models/Book.js";
+import { Book, BookChapter } from "../models/Book.js";
 import { SkillFunction } from "../models/SkillFunction.js";
 import { ISkill } from "../interfaces/ISkill.js";
+import { AudioPlayer } from "../../infrastructure/output/AudioPlayer.js";
 
 export class KnizhnyVozSkill implements ISkill {
   functions: SkillFunction[];
 
   books: Book[] = [];
 
-  player = Play({ player: "mpg123" });
-  playerProcess: Play.ChildProcess | null = null;
-
   systemPrompt = "Кніжны Воз-платформа дзіцячых аўдыёкніг.";
 
-  constructor() {
+  constructor(private player: AudioPlayer) {
     this.functions = [
       new SkillFunction(
         "playBook",
@@ -38,23 +35,28 @@ export class KnizhnyVozSkill implements ISkill {
         "stopPlaying",
         "Выкарыстоўвай гэту функцыю для спынення праігравання апошняй кнігі",
         {},
-        this.stopMP3
+        this.player.stop
       ),
     ];
   }
 
   cleanup(): void {
-    this.stopMP3();
+    this.player.stop();
   }
 
-  // public init(): Promise<void> {
-  //   // return this.loadAllBooks().then(() => {});
-  // }
+  public init(): Promise<void> {
+    return this.loadAllBooks().then((books) => {
+      this.books = books;
+    });
+  }
 
   public serviceMessages() {
-    // const booksSuffix =
-    //   "Спіс кніг у JSON:" + JSON.stringify(this.books.map((b) => b.toShort()));
-    return [{ role: "system", content: this.systemPrompt }];
+    const booksContent =
+      "Спіс кніг у JSON:" + JSON.stringify(this.books.map((b) => b.toShort()));
+    return [
+      { role: "system", content: this.systemPrompt },
+      { role: "system", content: booksContent },
+    ];
   }
 
   private playBook(id: string, name: string): Promise<void> {
@@ -81,26 +83,7 @@ export class KnizhnyVozSkill implements ISkill {
   }
 
   private playMP3(mp3Url: string): Promise<void> {
-    this.stopMP3();
-
-    return new Promise((resolve, reject) => {
-      // Assuming you have configured `play-sound` opts to use mpg123 or another player
-      this.playerProcess = this.player.play(mp3Url, {}, (err: Error | null) => {
-        if (err) {
-          console.error("Failed to play the MP3 file:", err);
-          reject(err);
-        } else {
-          console.debug("MP3 playback started successfully.");
-        }
-      });
-      resolve();
-    });
-  }
-
-  private stopMP3() {
-    if (this.playerProcess) {
-      this.playerProcess.kill();
-    }
+    return this.player.playUrl(mp3Url);
   }
 
   public async fetchBookData(id: string): Promise<BookChapter[]> {
@@ -135,7 +118,6 @@ export class KnizhnyVozSkill implements ISkill {
           )
           .then((books: Book[]) => {
             console.debug("Books loaded:", books);
-            this.books = books;
             return books;
           })
           .catch((error) => {

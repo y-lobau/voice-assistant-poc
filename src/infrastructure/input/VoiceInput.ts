@@ -3,6 +3,8 @@ import { IConsole } from "../../core/interfaces/IConsole.js";
 import { AudioWorker } from "./audio/picovoice/AudioWorker.js";
 import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback.js";
 import { IAI } from "../../core/interfaces/IAI.js";
+import { Omnibus } from "@hypersphere/omnibus";
+import { Events } from "../../core/interfaces/Events.js";
 
 export class VoiceInput implements IInput {
   private worker: AudioWorker;
@@ -11,7 +13,8 @@ export class VoiceInput implements IInput {
     private ai: IAI,
     private console: IConsole,
     private visualFeedback: IVisualFeedback,
-    private picoApiKey: string
+    private picoApiKey: string,
+    private eventBus: Omnibus<Events>
   ) {}
 
   input(): Promise<string> {

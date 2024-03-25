@@ -7,7 +7,7 @@ import { ConsoleInput } from "./infrastructure/input/ConsoleInput.js";
 import { ConsoleOutput } from "./infrastructure/output/ConsoleOutput.js";
 import { SkillBox } from "./core/skills/SkillBox.js";
 import { Conversation } from "./core/Conversation.js";
-import { OpenAIService } from "./infrastructure/OpenAIService.js";
+import { OpenAIService } from "./infrastructure/openAI/OpenAIService.js";
 import VoiceOutput from "./infrastructure/output/VoiceOutput.js";
 import { VoiceInput } from "./infrastructure/input/VoiceInput.js";
 import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisualization.js";
@@ -15,6 +15,10 @@ import { TimeSkill } from "./core/skills/TimeSkill.js";
 import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.js";
 import { AudioPlayer } from "./infrastructure/output/AudioPlayer.js";
 import { DeviceVisualization } from "./infrastructure/visualisation/DeviceVisualization.js";
+import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog.js";
+import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog.js";
+import { Omnibus } from "@hypersphere/omnibus";
+import { Events } from "./core/interfaces/Events.js";
 
 dotenv.config();
 
@@ -23,10 +27,12 @@ const gpt3Model = "gpt-3.5-turbo-1106";
 const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 
 const consoleOutput = new ConsoleOutput();
-const aiService = new OpenAIService(gpt4Model, consoleOutput);
+const aiService = new OpenAIService(gpt3Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
 let deviceVisualization: DeviceVisualization;
 let voiceInput: VoiceInput;
+
+const eventBus = new Omnibus<Events>();
 
 // Define profiles
 const profiles = {
@@ -91,24 +97,37 @@ const componentFactory = {
       aiService,
       consoleOutput,
       visualization,
-      process.env.PICOVOICE_API_KEY
+      process.env.PICOVOICE_API_KEY,
+      eventBus
     )),
   ConsoleOutput: () => consoleOutput,
   VoiceOutput: () =>
     new VoiceOutput(aiService, consoleOutput, visualization, audioPlayer),
 };
 
+const simpleMessageHandler = new SimpleMessageDialog(
+  gpt3Model,
+  aiService,
+  consoleOutput
+);
+
+const assistantDialog = new AssistantDialog(consoleOutput, aiService);
+
 const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
-const skills = new SkillBox([new KnizhnyVozSkill(), new TimeSkill(output)]);
+const skills = [
+  // new KnizhnyVozSkill(audioPlayer),
+  new TimeSkill(output),
+];
+const skillBox = new SkillBox(skills);
 
 async function run() {
   return new Conversation(
     input,
     output,
-    aiService,
-    skills,
+    simpleMessageHandler,
+    new SkillBox(skills),
     consoleOutput,
     visualization
   ).start();
@@ -119,7 +138,7 @@ await run();
 consoleOutput.debug("Ending the program");
 
 process.on("exit", (code) => {
-  skills.cleanup();
+  skillBox.cleanup();
 
   if (deviceVisualization) deviceVisualization.cleanup();
   if (voiceInput) voiceInput.cleanup();

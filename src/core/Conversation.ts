@@ -1,5 +1,5 @@
-import { IAI } from "./interfaces/IAI.js";
 import { IConsole } from "./interfaces/IConsole.js";
+import { IDialogHandler } from "./interfaces/IDialogHandler.js";
 import { IInput } from "./interfaces/IInput.js";
 import { IOutput } from "./interfaces/IOutput.js";
 import { IVisualFeedback } from "./interfaces/IVisualFeedback.js";
@@ -12,7 +12,7 @@ export class Conversation {
   constructor(
     private input: IInput,
     private output: IOutput,
-    private ai: IAI,
+    private dialog: IDialogHandler,
     private skills: SkillBox,
     private console: IConsole,
     private visualFeedback: IVisualFeedback,
@@ -29,8 +29,11 @@ export class Conversation {
 
       const skillsMessages = this.skills.serviceMessages();
 
-      return this.ai
-        .sendText(input, skillsMessages, this.skills.functionDefinitions)
+      return this.dialog
+        .sendMessage(input, {
+          systemMessages: skillsMessages,
+          functions: this.skills.functionDefinitions,
+        })
         .then((response: AIResponse) => this.handleAIResponse(response))
         .then((responseText) => {
           this.visualFeedback.thinking(false);

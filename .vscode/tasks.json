@@ -1,0 +1,80 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "device: run voice profile",
+      "type": "shell",
+      "command": "cd ~/voice-assistant-poc && node dist --profile=voice",
+
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "device: run device-console profile",
+      "type": "shell",
+      "command": "cd ~/voice-assistant-poc && node dist --profile=device-console",
+
+      "problemMatcher": [],
+      "group": {
+        "kind": "build"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "device: run console profile",
+      "type": "shell",
+      "command": "cd ~/voice-assistant-poc && node dist --profile=console",
+
+      "problemMatcher": [],
+      "group": {
+        "kind": "build"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "device: rebuild latest",
+      "type": "shell",
+      "command": "cd ~/voice-assistant-poc && git pull && npm install && npm run build",
+      "presentation": {
+        "panel": "new"
+      }
+    },
+    {
+      "label": "device: raspi-config",
+      "type": "shell",
+      "command": "sudo raspi-config",
+      "presentation": {
+        "panel": "new"
+      }
+    },
+    {
+      "label": "device: shutdown rpi",
+      "type": "shell",
+      "command": "sudo poweroff",
+      "presentation": {
+        "panel": "new"
+      }
+    },
+    {
+      "label": "device: reboot rpi",
+      "type": "shell",
+      "command": "sudo reboot",
+      "presentation": {
+        "panel": "new"
+      }
+    }
+  ]
+}

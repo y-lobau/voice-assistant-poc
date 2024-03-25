@@ -24,19 +24,20 @@
     "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.5",
-    "@types/mocha": "^2.2.44",
-    "@types/node": "^20.11.19",
-    "chai": "^4.1.2",
+    "@types/chai": "^4.3.12",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^20.11.28",
+    "chai": "^4.4.1",
     "mocha": "^10.3.0",
     "ts-node": "^3.3.0",
-    "tslint": "^5.8.0",
-    "typescript": "^5.3.3"
+    "tslint": "^5.20.1",
+    "typescript": "^5.4.2"
   },
   "engines": {
     "node": ">=6.10"
   },
   "dependencies": {
+    "@hypersphere/omnibus": "^0.1.6",
     "@picovoice/cobra-node": "^2.0.0",
     "@picovoice/porcupine-node": "^3.0.2",
     "@picovoice/pvrecorder-node": "^1.2.2",
@@ -46,7 +47,7 @@
     "he": "^1.2.0",
     "node-record-lpcm16": "^1.0.1",
     "onoff": "^6.0.3",
-    "openai": "^4.28.0",
+    "openai": "^4.29.1",
     "ora": "^8.0.1",
     "pigpio": "^3.3.1",
     "play-sound": "^1.1.6",

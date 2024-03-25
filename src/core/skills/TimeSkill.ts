@@ -27,14 +27,14 @@ export class TimeSkill implements ISkill {
         "announceTime",
         "функцыя абвяшчэння бягучага часу.выклікай на запыт кшталту 'Колькі цяпер часу?'",
         {},
-        this.tellTime
+        this.announceTime
       ),
     ];
   }
 
   cleanup(): void {}
 
-  private tellTime(): Promise<void> {
+  private announceTime(): Promise<void> {
     return new Promise((resolve) => {
       const date = new Date();
 
