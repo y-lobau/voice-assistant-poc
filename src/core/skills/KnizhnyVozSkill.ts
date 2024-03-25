@@ -1,4 +1,4 @@
-import { Book, BookChapter } from "../models/Book.js";
+import { Book, BookChapter, BookShort } from "../models/Book.js";
 import { SkillFunction } from "../models/SkillFunction.js";
 import { ISkill } from "../interfaces/ISkill.js";
 import { AudioPlayer } from "../../infrastructure/output/AudioPlayer.js";
@@ -6,7 +6,7 @@ import { AudioPlayer } from "../../infrastructure/output/AudioPlayer.js";
 export class KnizhnyVozSkill implements ISkill {
   functions: SkillFunction[];
 
-  books: Book[] = [];
+  books: BookShort[] = [];
 
   systemPrompt = "Кніжны Воз-платформа дзіцячых аўдыёкніг.";
 
@@ -35,7 +35,7 @@ export class KnizhnyVozSkill implements ISkill {
         "stopPlaying",
         "Выкарыстоўвай гэту функцыю для спынення праігравання апошняй кнігі",
         {},
-        this.player.stop
+        this.stopMP3
       ),
     ];
   }
@@ -46,13 +46,12 @@ export class KnizhnyVozSkill implements ISkill {
 
   public init(): Promise<void> {
     return this.loadAllBooks().then((books) => {
-      this.books = books;
+      this.books = books.map((b) => b.toShort());
     });
   }
 
   public serviceMessages() {
-    const booksContent =
-      "Спіс кніг у JSON:" + JSON.stringify(this.books.map((b) => b.toShort()));
+    const booksContent = "Спіс кніг у JSON:" + JSON.stringify(this.books);
     return [
       { role: "system", content: this.systemPrompt },
       { role: "system", content: booksContent },
@@ -84,6 +83,10 @@ export class KnizhnyVozSkill implements ISkill {
 
   private playMP3(mp3Url: string): Promise<void> {
     return this.player.playUrl(mp3Url);
+  }
+
+  private stopMP3(): void {
+    this.player.stop();
   }
 
   public async fetchBookData(id: string): Promise<BookChapter[]> {
