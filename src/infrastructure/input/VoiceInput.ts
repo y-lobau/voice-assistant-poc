@@ -17,23 +17,28 @@ export class VoiceInput implements IInput {
     private eventBus: Omnibus<Events>
   ) {}
 
-  input(): Promise<string> {
+  input(options: any): Promise<string> {
     return new Promise((resolve, reject) => {
-      return this.recordMic(resolve, reject);
+      return this.recordMic(options?.immediateReplyPossible, resolve, reject);
     }).then((filePath: string) => {
       return this.ai.voiceToText(filePath);
     });
   }
 
-  private recordMic(resolve, reject): Promise<string | null> {
+  private recordMic(
+    listenOnStart: boolean,
+    resolve,
+    reject
+  ): Promise<string | null> {
     this.worker = new AudioWorker(
       this.console,
       this.visualFeedback,
-      this.picoApiKey
+      this.picoApiKey,
+      this.eventBus
     );
 
     return this.worker
-      .recordInput()
+      .recordInput(listenOnStart)
       .then((filePath: string) => {
         this.console.debug("File recorded: " + filePath);
         return resolve(filePath);

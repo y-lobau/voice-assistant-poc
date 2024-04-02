@@ -6,6 +6,8 @@ import { IConsole } from "../../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { VoiceDetector } from "./VoiceDetector.js";
 import { IVisualFeedback } from "../../../../core/interfaces/IVisualFeedback.js";
+import { Omnibus } from "@hypersphere/omnibus";
+import { Events } from "../../../../core/interfaces/Events.js";
 
 export class AudioWorker {
   private isRecording = false;
@@ -22,7 +24,8 @@ export class AudioWorker {
   constructor(
     private console: IConsole,
     private visualFeedback: IVisualFeedback,
-    apiKey: string
+    apiKey: string,
+    private eventBus: Omnibus<Events>
   ) {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
@@ -39,7 +42,7 @@ export class AudioWorker {
     resolveCallback(file);
   }
 
-  public recordInput(): Promise<string> {
+  public recordInput(listenOnStart: boolean): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
       this.setupFFmpeg(
         this.outputFile,
@@ -49,7 +52,7 @@ export class AudioWorker {
       this.listener.start();
 
       // Recording works in two phases: first, without hotword detection, then with it, if no input detected
-      this.setRecordingStarted();
+      if (listenOnStart) this.setRecordingStarted();
 
       while (this.listener.isRecording) {
         const frame = await this.listener.read();
@@ -111,6 +114,7 @@ export class AudioWorker {
         const keywordIndex = this.porcupine.process(data);
         if (keywordIndex >= 0) {
           this.console.debug("hot word detected. Recording started.");
+          this.eventBus.trigger("voiceInputStarted");
           this.setRecordingStarted();
         } else {
           this.visualFeedback.waiting();
@@ -123,6 +127,7 @@ export class AudioWorker {
         if (!this.voiceDetector.voiceDetected) {
           this.isRecording = false;
           this.voiceDetector.reset();
+          this.eventBus.trigger("voiceInputFinished");
           return;
         }
 

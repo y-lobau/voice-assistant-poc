@@ -1,4 +1,4 @@
 export interface IInput {
-  input(): Promise<string>;
+  input(options: any | null): Promise<string>;
   cleanup?(): void;
 }

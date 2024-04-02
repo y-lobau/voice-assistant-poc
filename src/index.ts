@@ -19,6 +19,7 @@ import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog
 import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
+import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 
 dotenv.config();
 
@@ -119,30 +120,51 @@ const output = componentFactory[selectedProfile.output]();
 const skills = [
   // new KnizhnyVozSkill(audioPlayer),
   new TimeSkill(output),
+  new PlayTestAudioSkill(audioPlayer),
 ];
-const skillBox = new SkillBox(skills);
+const skillBox = new SkillBox(skills, eventBus);
+let cleanedUp = false;
+
+process.on("exit", cleanup);
+process.on("SIGINT", cleanup);
 
 async function run() {
   return new Conversation(
     input,
     output,
     simpleMessageHandler,
-    new SkillBox(skills),
+    new SkillBox(skills, eventBus),
     consoleOutput,
     visualization
-  ).start();
+  )
+    .start()
+    .catch(console.error);
 }
 
-await run();
+try {
+  await run();
+} catch (e) {
+  console.error(e);
+}
 
-consoleOutput.debug("Ending the program");
+process.stderr.on("data", (data) => {
+  console.error(`stderr: ${data}`);
+});
 
-process.on("exit", (code) => {
+function cleanup(code) {
+  if (code > 0) console.error("Exiting with code", code);
+
+  if (cleanedUp) return;
+  cleanedUp = true;
+
+  console.log("cleaning up");
   skillBox.cleanup();
 
   if (deviceVisualization) deviceVisualization.cleanup();
   if (voiceInput) voiceInput.cleanup();
-});
+
+  process.exit();
+}
 
 // await skill.loadAndPopulateAllBooks();
 

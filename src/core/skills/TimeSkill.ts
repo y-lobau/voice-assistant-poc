@@ -32,6 +32,8 @@ export class TimeSkill implements ISkill {
     ];
   }
 
+  onFinished: (skill: ISkill) => void;
+
   cleanup(): void {}
 
   private announceTime(): Promise<void> {
@@ -42,7 +44,10 @@ export class TimeSkill implements ISkill {
       const timeString = date.toLocaleTimeString("be-BY", this.timeOptions);
 
       const announcement = `Сёння ${dateString}, час ${timeString}.`;
-      this.output.output(announcement).then(resolve);
+      this.output.output(announcement).then(() => {
+        this.onFinished(this);
+        resolve();
+      });
     });
   }
 }

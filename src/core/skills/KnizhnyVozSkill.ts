@@ -5,8 +5,9 @@ import { AudioPlayer } from "../../infrastructure/output/AudioPlayer.js";
 
 export class KnizhnyVozSkill implements ISkill {
   functions: SkillFunction[];
-
+  onFinished: (skill: ISkill) => void;
   books: BookShort[] = [];
+  isPlaying = false;
 
   systemPrompt = "Кніжны Воз-платформа дзіцячых аўдыёкніг.";
 
@@ -50,6 +51,8 @@ export class KnizhnyVozSkill implements ISkill {
     });
   }
 
+  public onVoiceInterrupted(): void | Promise<void> {}
+
   public serviceMessages() {
     const booksContent = "Спіс кніг у JSON:" + JSON.stringify(this.books);
     return [
@@ -82,11 +85,20 @@ export class KnizhnyVozSkill implements ISkill {
   }
 
   private playMP3(mp3Url: string): Promise<void> {
-    return this.player.playUrl(mp3Url);
+    this.isPlaying = true;
+    return this.player.playUrl(mp3Url, () => this.onPlayFinished());
+  }
+
+  private onPlayFinished() {
+    this.isPlaying = false;
+    this.onFinished(this);
   }
 
   private stopMP3(): void {
-    this.player.stop();
+    if (this.isPlaying) {
+      console.debug("Stopping MP3 playback...");
+      this.player.stop();
+    }
   }
 
   public async fetchBookData(id: string): Promise<BookChapter[]> {

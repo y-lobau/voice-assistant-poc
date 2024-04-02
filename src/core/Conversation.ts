@@ -23,36 +23,43 @@ export class Conversation {
     return this.output.output(this.defaultQuestion).then(() => this.runLoop());
   }
 
-  private runLoop(): Promise<void> {
-    return this.input.input().then((input: string) => {
-      this.visualFeedback.thinking();
+  private runLoop(immediateReplyPossible: boolean = true): Promise<void> {
+    return this.input
+      .input({ immediateReplyPossible })
+      .then((input: string) => {
+        this.visualFeedback.thinking();
 
-      const skillsMessages = this.skills.serviceMessages();
+        const skillsMessages = this.skills.serviceMessages();
 
-      return this.dialog
-        .sendMessage(input, {
-          systemMessages: skillsMessages,
-          functions: this.skills.functionDefinitions,
-        })
-        .then((response: AIResponse) => this.handleAIResponse(response))
-        .then((responseText) => {
-          this.visualFeedback.thinking(false);
-          if (responseText) {
-            return this.output.output(responseText);
-          } else {
-            return Promise.resolve();
-          }
-        })
-        .then(() => {
-          if (this.mode === "infinite") {
-            return this.runLoop();
-          }
-        })
-        .catch((e) => {
-          this.output.error(e);
-          return this.runLoop();
-        });
-    });
+        return this.dialog
+          .sendMessage(input, {
+            systemMessages: skillsMessages,
+            functions: this.skills.functionDefinitions,
+          })
+          .then((response: AIResponse) => this.handleAIResponse(response))
+          .then((responseText) => {
+            this.visualFeedback.thinking(false);
+            let immediateReplyPossible = false;
+
+            if (responseText) {
+              immediateReplyPossible = true;
+              return this.output
+                .output(responseText)
+                .then(() => immediateReplyPossible);
+            } else {
+              return Promise.resolve().then(() => immediateReplyPossible);
+            }
+          })
+          .then((immediateReplyPossible) => {
+            if (this.mode === "infinite") {
+              return this.runLoop(immediateReplyPossible);
+            }
+          })
+          .catch((e) => {
+            this.output.error(e);
+            return this.runLoop(true);
+          });
+      });
   }
 
   private handleAIResponse(response: AIResponse): Promise<string | null> {

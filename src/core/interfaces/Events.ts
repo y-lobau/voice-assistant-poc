@@ -1,4 +1,4 @@
 export interface Events {
-  voiseInputStarted: [];
-  voiseInputFinished: [];
+  voiceInputStarted: [];
+  voiceInputFinished: [];
 }

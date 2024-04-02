@@ -3,7 +3,7 @@ import { ISkill } from "../interfaces/ISkill.js";
 
 export class SkillTemplate implements ISkill {
   functions: SkillFunction[];
-
+  onFinished: (skill: ISkill) => void;
   systemPrompt = "";
 
   constructor() {
