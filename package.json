@@ -41,7 +41,6 @@
     "@picovoice/cobra-node": "^2.0.0",
     "@picovoice/porcupine-node": "^3.0.2",
     "@picovoice/pvrecorder-node": "^1.2.2",
-    "audio-speaker": "^1.5.1",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
     "he": "^1.2.0",
