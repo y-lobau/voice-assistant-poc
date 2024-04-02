@@ -5,10 +5,16 @@ export class BlinktController implements IVisualFeedback {
   blinkt = new Blinkt({ clearOnExit: true });
   private intervals: NodeJS.Timeout[] = [];
 
+  test() {
+    this.blinkt.setAll({ r: 255, g: 0, b: 0, brightness: 0.5 });
+    this.blinkt.show();
+  }
+
   private clearIntervals(): void {
     this.intervals.forEach(clearInterval);
     this.intervals = [];
     this.blinkt.clear();
+    this.blinkt.show(); // Added to apply the clear command to the LEDs
   }
 
   private startInterval(
@@ -61,17 +67,34 @@ export class BlinktController implements IVisualFeedback {
 
     this.startInterval(
       () => {
-        if (isSequential || isBackAndForth) this.blinkt.off();
+        if (isSequential || isBackAndForth) this.blinkt.clear();
 
         if (isSequential) {
-          this.blinkt.setPixel(currentLED, ...color, 0.5);
+          this.blinkt.setPixel({
+            pixel: currentLED,
+            r: color[0],
+            g: color[1],
+            b: color[2],
+            brightness: 0.5,
+          });
           currentLED = (currentLED + 1) % 8;
         } else if (isBackAndForth) {
-          this.blinkt.setPixel(currentLED, ...color, 0.5);
+          this.blinkt.setPixel({
+            pixel: currentLED,
+            r: color[0],
+            g: color[1],
+            b: color[2],
+            brightness: 0.5,
+          });
           currentLED += direction;
           if (currentLED === 7 || currentLED === 0) direction *= -1;
         } else {
-          this.blinkt.setAll(...color, brightness);
+          this.blinkt.setAll({
+            r: color[0],
+            g: color[1],
+            b: color[2],
+            brightness,
+          });
         }
 
         if (isPulsing) {
