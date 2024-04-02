@@ -1,4 +1,4 @@
-import { BlinktController } from "./infrastructure/visualisation/BlinktController";
+import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 
 const visualisation = new BlinktController();
 
