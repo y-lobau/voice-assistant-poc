@@ -154,6 +154,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 try {
+  visualization.initializing(false);
   await run();
 } catch (e) {
   console.error(e);
