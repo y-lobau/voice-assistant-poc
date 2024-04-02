@@ -70,7 +70,7 @@ function getVisualization(visualizationName) {
     case "NoVisualization":
       return new NoVisualization();
     case "DeviceVisualization":
-      return (new BlinktController());
+      return new BlinktController();
     default:
       return new NoVisualization();
   }
@@ -88,7 +88,7 @@ const selectedProfile = profiles[argv.profile];
 
 // Visualization configuration
 const visualization = getVisualization(selectedProfile.visualization);
-visualization.initializing()
+visualization.initializing();
 
 // Input and Output configuration using a factory approach
 const componentFactory = {
@@ -141,19 +141,15 @@ async function run() {
     .catch(console.error);
 }
 
-process.stderr.on("data", (data) => {
-  console.error(`stderr: ${data}`);
-});
-
 // Catch unhandled exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Unhandled Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Unhandled Exception:", error);
   process.exit(1); // Exit with a failure code
 });
 
 // Catch unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   process.exit(1); // Exit with a failure code
 });
 
