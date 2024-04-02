@@ -64,52 +64,52 @@ export class BlinktController implements IVisualFeedback {
     let increasing = true;
     let currentLED = 0;
     let direction = 1;
+    // Smaller step for brightness changes and a shorter interval for smoother transitions
+    const brightnessStep = 0.02; // Smaller step for smooth transition
+    const intervalDuration = isSequential || isBackAndForth ? 150 : 100; // Shorter duration for more frequent updates
 
-    this.startInterval(
-      () => {
-        if (isSequential || isBackAndForth) this.blinkt.clear();
+    this.startInterval(() => {
+      if (isSequential || isBackAndForth) this.blinkt.clear();
 
-        if (isSequential) {
-          this.blinkt.setPixel({
-            pixel: currentLED,
-            r: color[0],
-            g: color[1],
-            b: color[2],
-            brightness: 0.5,
-          });
-          currentLED = (currentLED + 1) % 8;
-        } else if (isBackAndForth) {
-          this.blinkt.setPixel({
-            pixel: currentLED,
-            r: color[0],
-            g: color[1],
-            b: color[2],
-            brightness: 0.5,
-          });
-          currentLED += direction;
-          if (currentLED === 7 || currentLED === 0) direction *= -1;
+      if (isSequential) {
+        this.blinkt.setPixel({
+          pixel: currentLED,
+          r: color[0],
+          g: color[1],
+          b: color[2],
+          brightness: 0.5,
+        });
+        currentLED = (currentLED + 1) % 8;
+      } else if (isBackAndForth) {
+        this.blinkt.setPixel({
+          pixel: currentLED,
+          r: color[0],
+          g: color[1],
+          b: color[2],
+          brightness: 0.5,
+        });
+        currentLED += direction;
+        if (currentLED === 7 || currentLED === 0) direction *= -1;
+      } else {
+        this.blinkt.setAll({
+          r: color[0],
+          g: color[1],
+          b: color[2],
+          brightness,
+        });
+      }
+
+      if (isPulsing) {
+        if (increasing) {
+          brightness += brightnessStep;
+          if (brightness >= 1) increasing = false;
         } else {
-          this.blinkt.setAll({
-            r: color[0],
-            g: color[1],
-            b: color[2],
-            brightness,
-          });
+          brightness -= brightnessStep;
+          if (brightness <= initialBrightness) increasing = true;
         }
+      }
 
-        if (isPulsing) {
-          if (increasing) {
-            brightness += 0.1;
-            if (brightness >= 1) increasing = false;
-          } else {
-            brightness -= 0.1;
-            if (brightness <= 0.1) increasing = true;
-          }
-        }
-
-        this.blinkt.show();
-      },
-      isSequential || isBackAndForth ? 500 : 200
-    );
+      this.blinkt.show();
+    }, intervalDuration);
   }
 }
