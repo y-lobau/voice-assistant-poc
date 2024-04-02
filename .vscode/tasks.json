@@ -31,20 +31,6 @@
       }
     },
     {
-      "label": "device: run console profile",
-      "type": "shell",
-      "command": "cd ~/voice-assistant-poc && node dist --profile=console",
-
-      "problemMatcher": [],
-      "group": {
-        "kind": "build"
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      }
-    },
-    {
       "label": "device: rebuild latest",
       "type": "shell",
       "command": "cd ~/voice-assistant-poc && git pull && npm install && npm run build",

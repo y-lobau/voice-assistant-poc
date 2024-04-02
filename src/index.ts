@@ -14,11 +14,11 @@ import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisu
 import { TimeSkill } from "./core/skills/TimeSkill.js";
 import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.js";
 import { AudioPlayer } from "./infrastructure/output/AudioPlayer.js";
-import { DeviceVisualization } from "./infrastructure/visualisation/DeviceVisualization.js";
 import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog.js";
 import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
+import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 
 dotenv.config();
@@ -30,7 +30,6 @@ const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 const consoleOutput = new ConsoleOutput();
 const aiService = new OpenAIService(gpt3Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
-let deviceVisualization: DeviceVisualization;
 let voiceInput: VoiceInput;
 
 const eventBus = new Omnibus<Events>();
@@ -71,7 +70,7 @@ function getVisualization(visualizationName) {
     case "NoVisualization":
       return new NoVisualization();
     case "DeviceVisualization":
-      return (deviceVisualization = new DeviceVisualization(consoleOutput));
+      return (new BlinktController());
     default:
       return new NoVisualization();
   }
@@ -89,6 +88,7 @@ const selectedProfile = profiles[argv.profile];
 
 // Visualization configuration
 const visualization = getVisualization(selectedProfile.visualization);
+visualization.initializing()
 
 // Input and Output configuration using a factory approach
 const componentFactory = {
@@ -141,15 +141,27 @@ async function run() {
     .catch(console.error);
 }
 
+process.stderr.on("data", (data) => {
+  console.error(`stderr: ${data}`);
+});
+
+// Catch unhandled exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Unhandled Exception:', error);
+  process.exit(1); // Exit with a failure code
+});
+
+// Catch unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1); // Exit with a failure code
+});
+
 try {
   await run();
 } catch (e) {
   console.error(e);
 }
-
-process.stderr.on("data", (data) => {
-  console.error(`stderr: ${data}`);
-});
 
 function cleanup(code) {
   if (code > 0) console.error("Exiting with code", code);
@@ -159,8 +171,6 @@ function cleanup(code) {
 
   console.log("cleaning up");
   skillBox.cleanup();
-
-  if (deviceVisualization) deviceVisualization.cleanup();
   if (voiceInput) voiceInput.cleanup();
 
   process.exit();

@@ -7,8 +7,6 @@ import { AIResponse } from "./models/AIResponse.js";
 import { SkillBox } from "./skills/SkillBox.js";
 
 export class Conversation {
-  private defaultQuestion = "Чым я магу вам дапамагчы?";
-
   constructor(
     private input: IInput,
     private output: IOutput,
@@ -20,7 +18,7 @@ export class Conversation {
   ) {}
 
   private startConversation(): Promise<void> {
-    return this.output.output(this.defaultQuestion).then(() => this.runLoop());
+    return this.runLoop();
   }
 
   private runLoop(immediateReplyPossible: boolean = true): Promise<void> {
