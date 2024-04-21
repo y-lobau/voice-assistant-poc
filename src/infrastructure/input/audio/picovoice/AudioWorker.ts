@@ -17,7 +17,8 @@ export class AudioWorker {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private frameLength = 512;
-  private listener = new PvRecorder(this.frameLength);
+  private deviceIndex = 1;
+  private listener = new PvRecorder(this.frameLength, this.deviceIndex);
 
   private porcupine: Porcupine;
 

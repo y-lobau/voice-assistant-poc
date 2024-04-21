@@ -27,7 +27,7 @@ export class BlinktController implements IVisualFeedback {
   }
 
   initializing(start: boolean = true): void {
-    this.handleEvent(start, [255, 255, 255], 0.1, true);
+    this.handleEvent(start, [255, 255, 255], 0.05, true);
   }
 
   listening(start: boolean = true): void {
@@ -66,7 +66,7 @@ export class BlinktController implements IVisualFeedback {
     let direction = 1;
     // Smaller step for brightness changes and a shorter interval for smoother transitions
     const brightnessStep = 0.02; // Smaller step for smooth transition
-    const intervalDuration = isSequential || isBackAndForth ? 150 : 100; // Shorter duration for more frequent updates
+    const intervalDuration = isSequential || isBackAndForth ? 100 : 20; // Shorter duration for more frequent updates
 
     this.startInterval(() => {
       if (isSequential || isBackAndForth) this.blinkt.clear();
