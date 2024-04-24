@@ -17,8 +17,7 @@ export class AudioWorker {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private frameLength = 512;
-  private deviceIndex = 2;
-  private listener = new PvRecorder(this.frameLength, this.deviceIndex);
+  private listener;
 
   private porcupine: Porcupine;
 
@@ -26,11 +25,13 @@ export class AudioWorker {
     private console: IConsole,
     private visualFeedback: IVisualFeedback,
     apiKey: string,
-    private eventBus: Omnibus<Events>
+    private eventBus: Omnibus<Events>,
+    deviceIndex: number
   ) {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
+    this.listener = new PvRecorder(this.frameLength, deviceIndex);
   }
 
   private resolveOutput(resolveCallback) {

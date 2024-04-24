@@ -14,7 +14,8 @@ export class VoiceInput implements IInput {
     private console: IConsole,
     private visualFeedback: IVisualFeedback,
     private picoApiKey: string,
-    private eventBus: Omnibus<Events>
+    private eventBus: Omnibus<Events>,
+    private deviceIndex: number
   ) {}
 
   input(options: any): Promise<string> {
@@ -34,7 +35,8 @@ export class VoiceInput implements IInput {
       this.console,
       this.visualFeedback,
       this.picoApiKey,
-      this.eventBus
+      this.eventBus,
+      this.deviceIndex
     );
 
     return this.worker
