@@ -113,7 +113,9 @@ export class AudioWorker {
   private handleData(data, reject) {
     try {
       if (!this.isRecording) {
+        this.console.info("receiving data from listener");
         const keywordIndex = this.porcupine.process(data);
+        this.console.info("keywordIndex: " + keywordIndex);
         if (keywordIndex >= 0) {
           this.console.debug("hot word detected. Recording started.");
           this.eventBus.trigger("voiceInputStarted");
