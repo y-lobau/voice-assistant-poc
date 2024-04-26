@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import fs from "fs";
 import { PvRecorder } from "@picovoice/pvrecorder-node";
+import { Writer } from "wav";
 
 import { IConsole } from "../../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
@@ -10,6 +11,12 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
 
 export class AudioWorker {
+  wavWriter = new Writer({
+    sampleRate: 16000,
+    channels: 1,
+    bitDepth: 16,
+  });
+
   private isRecording = false;
   private stopped = false;
   private voiceDetector: VoiceDetector;
@@ -32,6 +39,8 @@ export class AudioWorker {
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
     this.listener = new PvRecorder(this.frameLength, deviceIndex);
+
+    this.wavWriter.pipe(fs.createWriteStream("output.wav"));
   }
 
   private resolveOutput(resolveCallback) {
@@ -141,6 +150,8 @@ export class AudioWorker {
           data.byteLength
         );
         this.ffmpeg.stdin.write(buffer);
+
+        this.wavWriter.write(buffer);
       }
     } catch (error) {
       reject(error);
@@ -153,6 +164,8 @@ export class AudioWorker {
         resolve();
         return;
       }
+
+      this.wavWriter.end();
 
       this.stopped = true;
       this.listener.stop();
