@@ -132,8 +132,8 @@ const skills = [
 const skillBox = new SkillBox(skills, eventBus);
 let cleanedUp = false;
 
-process.on("exit", cleanup);
-process.on("SIGINT", cleanup);
+// process.on("exit", cleanup);
+// process.on("SIGINT", cleanup);
 
 async function run() {
   return new Conversation(
