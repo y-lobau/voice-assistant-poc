@@ -11,12 +11,6 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
 
 export class AudioWorker {
-  wavWriter = new Writer({
-    sampleRate: 16000,
-    channels: 1,
-    bitDepth: 16,
-  });
-
   private isRecording = false;
   private stopped = false;
   private voiceDetector: VoiceDetector;
@@ -24,9 +18,11 @@ export class AudioWorker {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private frameLength = 512;
-  private listener;
+  private recorder;
 
   private porcupine: Porcupine;
+
+  wavWriter;
 
   constructor(
     private console: IConsole,
@@ -38,8 +34,13 @@ export class AudioWorker {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
-    this.listener = new PvRecorder(this.frameLength, deviceIndex);
+    this.recorder = new PvRecorder(this.frameLength, deviceIndex);
 
+    this.wavWriter = new Writer({
+      sampleRate: this.recorder.sampleRate,
+      channels: 1,
+      bitDepth: 16,
+    });
     this.wavWriter.pipe(fs.createWriteStream("output.wav"));
   }
 
@@ -60,13 +61,13 @@ export class AudioWorker {
         () => this.resolveOutput(resolve),
         reject
       );
-      this.listener.start();
+      this.recorder.start();
 
       // Recording works in two phases: first, without hotword detection, then with it, if no input detected
       if (listenOnStart) this.setRecordingStarted();
 
-      while (this.listener.isRecording) {
-        const frame = await this.listener.read();
+      while (this.recorder.isRecording) {
+        const frame = await this.recorder.read();
         this.handleData(frame, reject);
       }
     });
@@ -83,11 +84,12 @@ export class AudioWorker {
     onComplete: () => void,
     onError: (err) => void
   ): void {
+    this.recorder.sampleRate;
     this.ffmpeg = spawn("ffmpeg", [
       "-f",
       "s16le",
       "-ar",
-      "16000",
+      this.recorder.sampleRate,
       "-ac",
       "1",
       "-i",
@@ -168,7 +170,7 @@ export class AudioWorker {
       this.wavWriter.end();
 
       this.stopped = true;
-      this.listener.stop();
+      this.recorder.stop();
       this.ffmpeg.stdin.end();
     });
   }
