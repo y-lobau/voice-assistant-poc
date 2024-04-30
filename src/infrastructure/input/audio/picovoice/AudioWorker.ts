@@ -122,6 +122,10 @@ export class AudioWorker {
   }
 
   private handleData(data, reject) {
+    const buffer = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+
+    this.wavWriter.write(buffer);
+
     try {
       if (!this.isRecording) {
         const keywordIndex = this.porcupine.process(data);
@@ -152,8 +156,6 @@ export class AudioWorker {
           data.byteLength
         );
         this.ffmpeg.stdin.write(buffer);
-
-        this.wavWriter.write(buffer);
       }
     } catch (error) {
       reject(error);
