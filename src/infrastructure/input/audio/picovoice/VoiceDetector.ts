@@ -12,6 +12,9 @@ export class VoiceDetector {
 
   public silenceThresholdReached(audioFrame: Int16Array): Boolean {
     const voiceProbability = this.cobra.process(audioFrame);
+
+    console.log(`Voice probability: ${voiceProbability}`);
+
     const silence = voiceProbability < this.probabilityThreshold;
     if (silence) {
       if (this.isSilenceTimedOut()) return true;
