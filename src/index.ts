@@ -28,7 +28,7 @@ const gpt3Model = "gpt-3.5-turbo-1106";
 const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 
 const consoleOutput = new ConsoleOutput();
-const aiService = new OpenAIService(gpt3Model, consoleOutput);
+const aiService = new OpenAIService(gpt4Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
 let voiceInput: VoiceInput;
 
@@ -114,7 +114,7 @@ const componentFactory = {
 };
 
 const simpleMessageHandler = new SimpleMessageDialog(
-  gpt3Model,
+  gpt4Model,
   aiService,
   consoleOutput
 );
