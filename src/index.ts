@@ -23,12 +23,12 @@ import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 
 dotenv.config();
 
-const gpt4Model = "gpt-4-0125-preview";
+const gpt4Model = "gpt-4-turbo";
 const gpt3Model = "gpt-3.5-turbo-1106";
 const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 
 const consoleOutput = new ConsoleOutput();
-const aiService = new OpenAIService(gpt3Model, consoleOutput);
+const aiService = new OpenAIService(gpt4Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
 let voiceInput: VoiceInput;
 
@@ -114,7 +114,7 @@ const componentFactory = {
 };
 
 const simpleMessageHandler = new SimpleMessageDialog(
-  gpt3Model,
+  gpt4Model,
   aiService,
   consoleOutput
 );
