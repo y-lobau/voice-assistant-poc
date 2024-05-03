@@ -1,4 +1,4 @@
-const spi = require('spi-device');
+import spi from 'spi-device';
 
 // Open SPI bus
 const ledStrip = spi.open(0, 0, err => {
