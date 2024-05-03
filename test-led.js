@@ -1,7 +1,7 @@
 import spi from 'spi-device';
 
 // Open SPI bus
-const ledStrip = spi.open(0, 0, err => {
+const ledStrip = spi.open(0, 1, err => {
   if (err) throw err;
 });
 
