@@ -83,7 +83,5 @@ const RGB_MAP = {
     }
   }
   
-  module.exports = APA102;
-
   const apa = new APA102(3);
   apa.setPixel(0, 255, 0, 0);
