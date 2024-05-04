@@ -20,7 +20,7 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
-import { indicateBoot } from "./boot.js";
+import { LEDController } from "./boot.js";
 
 dotenv.config();
 
@@ -133,8 +133,8 @@ const skills = [
 const skillBox = new SkillBox(skills, eventBus);
 let cleanedUp = false;
 
-// process.on("exit", cleanup);
-// process.on("SIGINT", cleanup);
+process.on("exit", cleanup);
+process.on("SIGINT", cleanup);
 
 async function run() {
   return new Conversation(
@@ -161,10 +161,10 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
+const letController = new LEDController();
+
 try {
   visualization.initializing(false);
-
-  indicateBoot();
 
   await run();
 } catch (e) {
@@ -172,6 +172,8 @@ try {
 }
 
 function cleanup(code) {
+  letController.cleanup();
+
   if (code > 0) console.error("Exiting with code", code);
 
   if (cleanedUp) return;
