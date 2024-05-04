@@ -19,6 +19,12 @@ const RGB_MAP = {
       this.spi = spi.open(bus, device, {
         mode: spi.MODE0,
         maxSpeedHz: maxSpeedHz
+      }, (err) => {
+        if (err) {
+          console.error('Error opening SPI device:', err);
+        } else {
+          console.log('SPI device opened successfully');
+        }
       });
     }
   
