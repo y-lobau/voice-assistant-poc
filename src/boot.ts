@@ -1,9 +1,9 @@
 // Import the SPI device type definitions
-import * as spi from "spi-device";
+import { open } from "spi-device";
 
 export function indicateBoot() {
   // Open the SPI device
-  const ledStrip = spi.open(
+  const ledStrip = open(
     0,
     0,
     { mode: 0, maxSpeedHz: 1000000 },
