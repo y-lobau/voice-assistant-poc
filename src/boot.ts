@@ -1,5 +1,6 @@
 // Import the SPI device type definitions
-import { open } from "spi-device";
+import pkg from "spi-device";
+const { open } = pkg;
 
 export function indicateBoot() {
   // Open the SPI device
