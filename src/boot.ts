@@ -34,7 +34,7 @@ export function indicateBoot() {
             speedHz: 1000000,
           },
         ],
-        (error: Error | null, message: spi.SpiMessage) => {
+        (error: Error | null, message) => {
           if (error) {
             console.error("Failed to send SPI message:", error);
           } else {
