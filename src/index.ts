@@ -20,6 +20,7 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
+import { indicateBoot } from "./boot.js";
 
 dotenv.config();
 
@@ -162,6 +163,9 @@ process.on("unhandledRejection", (reason, promise) => {
 
 try {
   visualization.initializing(false);
+
+  indicateBoot();
+
   await run();
 } catch (e) {
   console.error(e);
