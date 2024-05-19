@@ -23,7 +23,7 @@ import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 
 dotenv.config();
 
-const gpt4Model = "gpt-4-0125-preview";
+const gpt4Model = "gpt-4o";
 const gpt3Model = "gpt-3.5-turbo-1106";
 const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 
@@ -125,15 +125,15 @@ const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
 const skills = [
-  // new KnizhnyVozSkill(audioPlayer),
+  new KnizhnyVozSkill(audioPlayer),
   new TimeSkill(output),
   new PlayTestAudioSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
 let cleanedUp = false;
 
-// process.on("exit", cleanup);
-// process.on("SIGINT", cleanup);
+process.on("exit", cleanup);
+process.on("SIGINT", cleanup);
 
 async function run() {
   return new Conversation(
