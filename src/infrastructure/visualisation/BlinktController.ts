@@ -27,7 +27,7 @@ export class BlinktController implements IVisualFeedback {
   }
 
   initializing(start: boolean = true): void {
-    this.handleEvent(start, [255, 255, 255], 0.05, true);
+    this.handleEvent(start, [255, 255, 255], 0.05, false, true);
   }
 
   listening(start: boolean = true): void {
@@ -75,14 +75,14 @@ export class BlinktController implements IVisualFeedback {
       r: 128, // Grey color (128, 128, 128)
       g: 128,
       b: 128,
-      brightness: 0.01, // 10% brightness
+      brightness: 0.05, // 10% brightness
     });
     this.blinkt.setPixel({
       pixel: 7,
       r: 128, // Grey color (128, 128, 128)
       g: 128,
       b: 128,
-      brightness: 0.01, // 10% brightness
+      brightness: 0.05, // 10% brightness
     });
 
     this.blinkt.show();
