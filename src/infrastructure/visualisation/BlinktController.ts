@@ -55,8 +55,8 @@ export class BlinktController implements IVisualFeedback {
     this.clearIntervals(); // Ensure no other animations are running
     let brightness = 0.1;
     let increasing = true;
-    const brightnessStep = 0.02; // Smaller step for smooth transition
-    const intervalDuration = 20; // Shorter duration for more frequent updates
+    const brightnessStep = 0.005; // Smaller step for smoother transition
+    const intervalDuration = 50; // Slightly longer duration for smoother updates
 
     this.startInterval(() => {
       this.blinkt.clear();
@@ -78,10 +78,10 @@ export class BlinktController implements IVisualFeedback {
 
       if (increasing) {
         brightness += brightnessStep;
-        if (brightness >= 1) increasing = false;
+        if (brightness >= 0.1) increasing = false;
       } else {
         brightness -= brightnessStep;
-        if (brightness <= 0.1) increasing = true;
+        if (brightness <= 0) increasing = true;
       }
 
       this.blinkt.show();
