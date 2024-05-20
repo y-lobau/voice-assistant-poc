@@ -38,7 +38,7 @@ export class BlinktController implements IVisualFeedback {
 
     this.clearIntervals(); // Ensure no other animations are running
 
-    const brightnessValues = [0.01, 0.05, 0.1, 0.2, 0.2, 0.1, 0.05, 0.01];
+    const brightnessValues = [0.001, 0.01, 0.05, 0.2, 0.2, 0.05, 0.01, 0.001];
 
     for (let i = 0; i < 8; i++) {
       this.blinkt.setPixel({
