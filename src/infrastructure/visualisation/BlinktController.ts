@@ -104,7 +104,7 @@ export class BlinktController implements IVisualFeedback {
     this.clearIntervals(); // Ensure no other animations are running
     let brightness = initialBrightness;
     let increasing = true;
-    let currentLED = 0;
+    let currentLED = 7; // Start from the last LED
     let direction = 1;
     // Smaller step for brightness changes and a shorter interval for smoother transitions
     const brightnessStep = 0.02; // Smaller step for smooth transition
@@ -121,7 +121,7 @@ export class BlinktController implements IVisualFeedback {
           b: color[2],
           brightness: 0.5,
         });
-        currentLED = (currentLED + 1) % 8;
+        currentLED = (currentLED - 1 + 8) % 8; // Move to the previous LED
       } else if (isBackAndForth) {
         this.blinkt.setPixel({
           pixel: currentLED,
