@@ -49,41 +49,24 @@ export class BlinktController implements IVisualFeedback {
     }
 
     this.clearIntervals(); // Ensure no other animations are running
-    let brightness = 0.0;
-    let increasing = true;
-    const brightnessStep = 0.01; // Smaller step for smooth transition
-    const intervalDuration = 20; // Shorter duration for more frequent updates
 
-    this.startInterval(() => {
-      this.blinkt.clear();
+    // Set the very left and very right LEDs
+    this.blinkt.setPixel({
+      pixel: 0,
+      r: 128, // Grey color (128, 128, 128)
+      g: 128,
+      b: 128,
+      brightness: 0.1, // 10% brightness
+    });
+    this.blinkt.setPixel({
+      pixel: 7,
+      r: 128, // Grey color (128, 128, 128)
+      g: 128,
+      b: 128,
+      brightness: 0.1, // 10% brightness
+    });
 
-      // Set the very left and very right LEDs
-      this.blinkt.setPixel({
-        pixel: 0,
-        r: 128, // Grey color (128, 128, 128)
-        g: 128,
-        b: 128,
-        brightness,
-      });
-      this.blinkt.setPixel({
-        pixel: 7,
-        r: 128, // Grey color (128, 128, 128)
-        g: 128,
-        b: 128,
-        brightness,
-      });
-
-      // Adjust brightness for pulsing effect
-      if (increasing) {
-        brightness += brightnessStep;
-        if (brightness >= 0.1) increasing = false; // Pulse up to 10% brightness
-      } else {
-        brightness -= brightnessStep;
-        if (brightness <= 0.0) increasing = true; // Pulse down to 0% brightness
-      }
-
-      this.blinkt.show();
-    }, intervalDuration);
+    this.blinkt.show();
   }
 
   private handleEvent(
