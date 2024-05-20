@@ -42,8 +42,50 @@ export class BlinktController implements IVisualFeedback {
     this.handleEvent(start, [255, 165, 0], 0.5, false);
   }
 
-  standby(start: boolean = true): void {
+  waiting(start: boolean = true): void {
     this.handleEvent(start, [0, 255, 0], 0.1, true);
+  }
+
+  standby(start: boolean = true): void {
+    if (!start) {
+      this.clearIntervals();
+      return;
+    }
+
+    this.clearIntervals(); // Ensure no other animations are running
+    let brightness = 0.1;
+    let increasing = true;
+    const brightnessStep = 0.02; // Smaller step for smooth transition
+    const intervalDuration = 20; // Shorter duration for more frequent updates
+
+    this.startInterval(() => {
+      this.blinkt.clear();
+
+      this.blinkt.setPixel({
+        pixel: 0, // Very left pixel
+        r: 128, // Grey color
+        g: 128,
+        b: 128,
+        brightness,
+      });
+      this.blinkt.setPixel({
+        pixel: 7, // Very right pixel
+        r: 128, // Grey color
+        g: 128,
+        b: 128,
+        brightness,
+      });
+
+      if (increasing) {
+        brightness += brightnessStep;
+        if (brightness >= 1) increasing = false;
+      } else {
+        brightness -= brightnessStep;
+        if (brightness <= 0.1) increasing = true;
+      }
+
+      this.blinkt.show();
+    }, intervalDuration);
   }
 
   private handleEvent(
