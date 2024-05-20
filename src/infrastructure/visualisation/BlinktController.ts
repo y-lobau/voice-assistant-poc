@@ -31,7 +31,27 @@ export class BlinktController implements IVisualFeedback {
   }
 
   listening(start: boolean = true): void {
-    this.handleEvent(start, [0, 0, 255], 0.5, false, true);
+    if (!start) {
+      this.clearIntervals();
+      return;
+    }
+
+    this.clearIntervals(); // Ensure no other animations are running
+
+    // Brightness gradient from center to edges, with max brightness 20% in the center
+    const brightnessValues = [0.05, 0.1, 0.15, 0.2, 0.2, 0.15, 0.1, 0.05];
+
+    for (let i = 0; i < 8; i++) {
+      this.blinkt.setPixel({
+        pixel: i,
+        r: 0, // Green color
+        g: 255,
+        b: 0,
+        brightness: brightnessValues[i],
+      });
+    }
+
+    this.blinkt.show();
   }
 
   talking(start: boolean = true): void {
