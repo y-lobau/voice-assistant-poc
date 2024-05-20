@@ -5,7 +5,6 @@ import { PvRecorder } from "@picovoice/pvrecorder-node";
 import { IConsole } from "../../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { VoiceDetector } from "./VoiceDetector.js";
-import { IVisualFeedback } from "../../../../core/interfaces/IVisualFeedback.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
 
@@ -20,10 +19,10 @@ export class AudioWorker {
   private listener;
 
   private porcupine: Porcupine;
+  private standbyFlag = false;
 
   constructor(
     private console: IConsole,
-    private visualFeedback: IVisualFeedback,
     apiKey: string,
     private eventBus: Omnibus<Events>,
     deviceIndex: number
@@ -40,7 +39,7 @@ export class AudioWorker {
         ? this.outputFile
         : null;
 
-    this.visualFeedback.listening(false);
+    this.eventBus.trigger("voiceRecordingFinished");
     resolveCallback(file);
   }
 
@@ -64,9 +63,9 @@ export class AudioWorker {
   }
 
   private setRecordingStarted() {
+    this.standbyFlag = false;
     this.isRecording = true;
-    this.visualFeedback.waiting(false);
-    this.visualFeedback.listening();
+    this.eventBus.trigger("voiceInputStarted");
   }
 
   private setupFFmpeg(
@@ -110,6 +109,13 @@ export class AudioWorker {
     });
   }
 
+  private setStandbyMode() {
+    if (this.standbyFlag) return;
+
+    this.standbyFlag = true;
+    this.eventBus.trigger("voiceStandbyStarted");
+  }
+
   private handleData(data, reject) {
     try {
       if (!this.isRecording) {
@@ -119,7 +125,7 @@ export class AudioWorker {
           this.eventBus.trigger("voiceInputStarted");
           this.setRecordingStarted();
         } else {
-          this.visualFeedback.waiting();
+          this.setStandbyMode();
           return;
         }
       } else if (this.voiceDetector.silenceThresholdReached(data)) {

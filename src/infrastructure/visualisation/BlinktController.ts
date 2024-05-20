@@ -42,7 +42,7 @@ export class BlinktController implements IVisualFeedback {
     this.handleEvent(start, [255, 165, 0], 0.5, false);
   }
 
-  waiting(start: boolean = true): void {
+  standby(start: boolean = true): void {
     this.handleEvent(start, [0, 255, 0], 0.1, true);
   }
 

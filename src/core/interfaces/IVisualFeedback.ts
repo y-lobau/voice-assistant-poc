@@ -11,7 +11,7 @@ export interface IVisualFeedback {
   // The app processing user input
   thinking();
   thinking(start: boolean);
-  // The app waits for the user input 
-  waiting();
-  waiting(start: boolean);
+  // The app waits for the user input
+  standby();
+  standby(start: boolean);
 }

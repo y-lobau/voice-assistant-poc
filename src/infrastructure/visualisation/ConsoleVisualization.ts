@@ -16,7 +16,7 @@ export class ConsoleVisualization implements IVisualFeedback {
   thinking(start: boolean = true) {
     this.setLoading(start, "Думаю...\n");
   }
-  waiting(start: boolean = true) {
+  standby(start: boolean = true) {
     this.setLoading(start, "Чакаю...\n");
   }
 

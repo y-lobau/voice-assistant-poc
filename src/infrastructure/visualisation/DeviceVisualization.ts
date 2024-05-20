@@ -82,7 +82,7 @@ export class DeviceVisualization implements IVisualFeedback {
     this.toggleLeds(start);
   }
 
-  waiting(start: boolean = true) {
+  standby(start: boolean = true) {
     this.console.info("waiting...");
     this.toggleLeds(start);
   }

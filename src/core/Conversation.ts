@@ -1,10 +1,11 @@
+import { Omnibus } from "@hypersphere/omnibus";
 import { IConsole } from "./interfaces/IConsole.js";
 import { IDialogHandler } from "./interfaces/IDialogHandler.js";
 import { IInput } from "./interfaces/IInput.js";
 import { IOutput } from "./interfaces/IOutput.js";
-import { IVisualFeedback } from "./interfaces/IVisualFeedback.js";
 import { AIResponse } from "./models/AIResponse.js";
 import { SkillBox } from "./skills/SkillBox.js";
+import { Events } from "./interfaces/Events.js";
 
 export class Conversation {
   constructor(
@@ -13,19 +14,15 @@ export class Conversation {
     private dialog: IDialogHandler,
     private skills: SkillBox,
     private console: IConsole,
-    private visualFeedback: IVisualFeedback,
+    private eventBus: Omnibus<Events>,
     private mode: "infinite" | "single" = "infinite"
   ) {}
-
-  private startConversation(): Promise<void> {
-    return this.runLoop();
-  }
 
   private runLoop(immediateReplyPossible: boolean = true): Promise<void> {
     return this.input
       .input({ immediateReplyPossible })
       .then((input: string) => {
-        this.visualFeedback.thinking();
+        this.eventBus.trigger("processingInputStarted");
 
         const skillsMessages = this.skills.serviceMessages();
 
@@ -36,7 +33,7 @@ export class Conversation {
           })
           .then((response: AIResponse) => this.handleAIResponse(response))
           .then((responseText) => {
-            this.visualFeedback.thinking(false);
+            this.eventBus.trigger("processingInputFinished");
             let immediateReplyPossible = false;
 
             if (responseText) {
@@ -65,9 +62,11 @@ export class Conversation {
     return this.skills.use(response.callbacks).then(() => response.content);
   }
 
+  public async init(): Promise<void> {
+    return this.skills.init();
+  }
+
   public async start(): Promise<void> {
-    return this.skills.init().then(() => {
-      return this.startConversation();
-    });
+    return this.runLoop();
   }
 }

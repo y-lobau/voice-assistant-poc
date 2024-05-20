@@ -1,16 +1,17 @@
 import { IOutput } from "../../core/interfaces/IOutput.js";
 import { Messages } from "../../Messages.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
-import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback.js";
 import { IAI } from "../../core/interfaces/IAI.js";
 import { AudioPlayer } from "./AudioPlayer.js";
+import { Omnibus } from "@hypersphere/omnibus";
+import { Events } from "../../core/interfaces/Events.js";
 
 export default class VoiceOutput implements IOutput {
   constructor(
     private ai: IAI,
     private console: IConsole,
-    private visualFeedback: IVisualFeedback,
-    private audioPlayer: AudioPlayer
+    private audioPlayer: AudioPlayer,
+    private eventBus: Omnibus<Events>
   ) {}
 
   error(ex): Promise<void> {
@@ -27,15 +28,15 @@ export default class VoiceOutput implements IOutput {
   }
 
   private async textToVoice(text: string, resolve, reject): Promise<void> {
-    this.visualFeedback.thinking();
+    this.eventBus.trigger("processingInputStarted");
 
     return this.ai.textToVoice(text).then((buffer: Buffer) => {
-      this.visualFeedback.thinking(false);
-      this.visualFeedback.talking();
+      this.eventBus.trigger("processingInputFinished");
+      this.eventBus.trigger("talkingStarted");
 
       return this.audioPlayer
         .play(buffer)
-        .then(() => this.visualFeedback.talking(false))
+        .then(() => this.eventBus.trigger("talkingFinished"))
         .catch(reject)
         .then(resolve);
     });

@@ -7,5 +7,5 @@ export class NoVisualization implements IVisualFeedback {
   listening(start: boolean = true) {}
   talking(start: boolean = true) {}
   thinking(start: boolean = true) {}
-  waiting(start: boolean = true) {}
+  standby(start: boolean = true) {}
 }

@@ -25,7 +25,6 @@ dotenv.config();
 
 const gpt4Model = "gpt-4o";
 const gpt3Model = "gpt-3.5-turbo-1106";
-const gpt3ModelFT = "ft:gpt-3.5-turbo-1106:personal::8vR4QnIi";
 
 const consoleOutput = new ConsoleOutput();
 const aiService = new OpenAIService(gpt4Model, consoleOutput);
@@ -103,14 +102,13 @@ const componentFactory = {
     (voiceInput = new VoiceInput(
       aiService,
       consoleOutput,
-      visualization,
       process.env.PICOVOICE_API_KEY,
       eventBus,
       argv.deviceIndex
     )),
   ConsoleOutput: () => consoleOutput,
   VoiceOutput: () =>
-    new VoiceOutput(aiService, consoleOutput, visualization, audioPlayer),
+    new VoiceOutput(aiService, consoleOutput, audioPlayer, eventBus),
 };
 
 const simpleMessageHandler = new SimpleMessageDialog(
@@ -120,7 +118,7 @@ const simpleMessageHandler = new SimpleMessageDialog(
 );
 
 const assistantDialog = new AssistantDialog(consoleOutput, aiService);
-
+let cleanedUp = false;
 const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
@@ -130,23 +128,18 @@ const skills = [
   new PlayTestAudioSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
-let cleanedUp = false;
+
+const conversation = new Conversation(
+  input,
+  output,
+  simpleMessageHandler,
+  new SkillBox(skills, eventBus),
+  consoleOutput,
+  eventBus
+);
 
 process.on("exit", cleanup);
 process.on("SIGINT", cleanup);
-
-async function run() {
-  return new Conversation(
-    input,
-    output,
-    simpleMessageHandler,
-    new SkillBox(skills, eventBus),
-    consoleOutput,
-    visualization
-  )
-    .start()
-    .catch(console.error);
-}
 
 // Catch unhandled exceptions
 process.on("uncaughtException", (error) => {
@@ -160,9 +153,11 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
+// Start the conversation
 try {
+  await conversation.init();
   visualization.initializing(false);
-  await run();
+  await conversation.start().catch(console.error);
 } catch (e) {
   console.error(e);
 }
