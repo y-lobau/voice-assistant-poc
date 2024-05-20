@@ -20,6 +20,7 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
+import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 
 dotenv.config();
 
@@ -128,6 +129,7 @@ const skills = [
   new PlayTestAudioSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
+FeedbackManager.init(eventBus, visualization);
 
 const conversation = new Conversation(
   input,

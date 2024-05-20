@@ -5,7 +5,7 @@ export class Silence {
   public silenceThresholdMultiplier = 1.5;
   private silenceThreshold = 0;
   private silenceStart: number | null = null;
-  private silenceTimeout = 2000;
+  private silenceTimeout = 8000;
 
   constructor(private console) {}
 

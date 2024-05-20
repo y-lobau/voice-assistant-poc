@@ -3,7 +3,10 @@ import { Events } from "../../core/interfaces/Events";
 import { IVisualFeedback } from "../../core/interfaces/IVisualFeedback";
 
 export class FeedbackManager {
-  constructor(eventBus: Omnibus<Events>, visualisation: IVisualFeedback) {
+  public static init(
+    eventBus: Omnibus<Events>,
+    visualisation: IVisualFeedback
+  ) {
     eventBus.on("processingInputStarted", () => {
       console.debug("event: processingInputStarted");
       visualisation.thinking();
