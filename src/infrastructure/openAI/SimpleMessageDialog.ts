@@ -12,7 +12,7 @@ export class SimpleMessageDialog implements IDialogHandler {
   ) {}
 
   defaultSystemMessage =
-    "Ты адказваеш толькі на беларускай мове.Калі адказ змяшчае толькі лічбы-адказвай словамі";
+    "Ты-галасавы асісіэнт.Ты адказваеш толькі на беларускай мове.Усе лічбы і нумерацыю у адказах пішы словамі";
 
   sendMessage(text, additionalContext): Promise<AIResponse> {
     const messages = additionalContext.systemMessages
