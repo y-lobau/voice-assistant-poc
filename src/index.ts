@@ -131,7 +131,7 @@ const skills = [
   // new KnizhnyVozSkill(audioPlayer),
   // new TimeSkill(output),
   // new PlayTestAudioSkill(audioPlayer),
-  new BaradzedSkill(audioPlayer),
+  // new BaradzedSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
 FeedbackManager.init(eventBus, visualization);
