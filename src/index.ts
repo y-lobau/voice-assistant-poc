@@ -21,6 +21,7 @@ import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
+import { BaradzedSkill } from "./core/skills/Baradzed.js";
 
 dotenv.config();
 
@@ -124,9 +125,10 @@ const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
 const skills = [
-  new KnizhnyVozSkill(audioPlayer),
-  new TimeSkill(output),
-  new PlayTestAudioSkill(audioPlayer),
+  // new KnizhnyVozSkill(audioPlayer),
+  // new TimeSkill(output),
+  // new PlayTestAudioSkill(audioPlayer),
+  new BaradzedSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
 FeedbackManager.init(eventBus, visualization);

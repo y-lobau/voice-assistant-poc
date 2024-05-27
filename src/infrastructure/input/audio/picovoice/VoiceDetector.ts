@@ -14,13 +14,17 @@ export class VoiceDetector {
     const voiceProbability = this.cobra.process(audioFrame);
     const silence = voiceProbability < this.probabilityThreshold;
     if (silence) {
-      if (this.isSilenceTimedOut()) return true;
+      if (this.isSilenceTimedOut()) {
+        console.debug("Silence timed out");
+        return true;
+      }
       if (!this.silenceStart) this.setSilenceStarted();
     } else this.setVoiceDetected();
     return false;
   }
 
   private setSilenceStarted(): void {
+    console.debug("Silence started");
     this.silenceStart = Date.now();
   }
 

@@ -15,19 +15,21 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && npm run copy-assets",
     "watch": "tsc --watch",
     "test": "mocha --opts tests/mocha.opts",
     "test-watch": "mocha --opts tests/mocha.opts --watch",
     "clean": "rm -rf dist",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
-    "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix"
+    "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
+    "copy-assets": "copyfiles -u 1 assets/** dist/assets"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
     "@types/mocha": "^2.2.48",
     "@types/node": "^20.11.28",
     "chai": "^4.4.1",
+    "copyfiles": "^2.4.1",
     "mocha": "^10.3.0",
     "ts-node": "^3.3.0",
     "tslint": "^5.20.1",
