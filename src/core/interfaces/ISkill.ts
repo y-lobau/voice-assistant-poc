@@ -1,6 +1,7 @@
 import { SkillFunction } from "../models/SkillFunction.js";
 
 export interface ISkill {
+  pauseOrStop?(): unknown;
   onFinished: (skill: ISkill) => void;
   cleanup?(): void;
   functions: SkillFunction[];

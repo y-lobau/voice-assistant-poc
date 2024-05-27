@@ -41,4 +41,9 @@ export class BaradzedSkill implements ISkill {
     const data = await fs.readFile(assetsPath);
     this.player.play(data);
   }
+
+  public pauseOrStop(): void {
+    console.log("BaradzedSkill: pauseOrStop()");
+    this.player.stop();
+  }
 }

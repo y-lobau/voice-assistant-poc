@@ -22,6 +22,7 @@ import { BlinktController } from "./infrastructure/visualisation/BlinktControlle
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 import { BaradzedSkill } from "./core/skills/Baradzed.js";
+import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
 
@@ -112,6 +113,8 @@ const componentFactory = {
   VoiceOutput: () =>
     new VoiceOutput(aiService, consoleOutput, audioPlayer, eventBus),
 };
+
+ButtonHandler.init(eventBus);
 
 const simpleMessageHandler = new SimpleMessageDialog(
   gpt4Model,

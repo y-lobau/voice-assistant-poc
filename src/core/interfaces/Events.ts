@@ -7,4 +7,5 @@ export interface Events {
   processingInputFinished: [];
   talkingStarted: [];
   talkingFinished: [];
+  buttonPressed: [];
 }

@@ -14,6 +14,7 @@ export class SkillBox {
 
     eventBus.on("voiceInputStarted", () => this.onVoiceInputStarted());
     eventBus.on("voiceInputFinished", () => this.onVoiceInputFinished());
+    eventBus.on("buttonPressed", () => this.onButtonPressed());
 
     this.skills.forEach((skill) => {
       skill.functions.forEach((func) => {
@@ -21,6 +22,12 @@ export class SkillBox {
       });
 
       skill.onFinished = (skill) => this.onSkillFinished(skill);
+    });
+  }
+
+  private onButtonPressed() {
+    this.activeSkills.forEach((skill) => {
+      if (skill.pauseOrStop) skill.pauseOrStop();
     });
   }
 
