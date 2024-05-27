@@ -22,7 +22,7 @@ import { BlinktController } from "./infrastructure/visualisation/BlinktControlle
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 import { BaradzedSkill } from "./core/skills/Baradzed.js";
-import { ButtonHandler } from "./infrastructure/input/button.js";
+// import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
 
@@ -114,7 +114,7 @@ const componentFactory = {
     new VoiceOutput(aiService, consoleOutput, audioPlayer, eventBus),
 };
 
-ButtonHandler.init(eventBus);
+// ButtonHandler.init(eventBus);
 
 const simpleMessageHandler = new SimpleMessageDialog(
   gpt4Model,
@@ -131,7 +131,7 @@ const skills = [
   // new KnizhnyVozSkill(audioPlayer),
   // new TimeSkill(output),
   // new PlayTestAudioSkill(audioPlayer),
-  // new BaradzedSkill(audioPlayer),
+  new BaradzedSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
 FeedbackManager.init(eventBus, visualization);
