@@ -29,12 +29,17 @@ export class VoiceInput implements IInput {
     resolve,
     reject
   ): Promise<void | null> {
-    this.worker = new AudioWorker(
-      this.console,
-      this.picoApiKey,
-      this.eventBus,
-      this.deviceIndex
-    );
+    try {
+      this.worker = new AudioWorker(
+        this.console,
+        this.picoApiKey,
+        this.eventBus,
+        this.deviceIndex
+      );
+    } catch (err) {
+      this.console.error(err);
+      reject(err);
+    }
 
     return this.worker
       .recordInput(listenOnStart)
