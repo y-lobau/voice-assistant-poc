@@ -44,7 +44,7 @@ export class VoiceInput implements IInput {
       })
       .catch((err) => {
         this.console.error(err);
-        console.error(err);
+        console.error("Unexpected: ", err);
         return reject(err);
       });
   }
