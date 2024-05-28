@@ -15,16 +15,10 @@ export class BaradzedSkill implements ISkill {
     this.functions = [
       new SkillFunction(
         "playBaradzed",
-        "Запускай гэту функцыю для праігравання Дзеда Барадзеда",
+        "Ёсць такі казачны герой - Дзед Барадзед.Пра яго ёсць песня. Запускай гэту функцыю толькі калі цябе просяць прайграць/паставіць песню Дзеда Барадзеда.Ніколі сам не прапаноўвай запусціць песню.",
         {
           type: "object",
-          properties: {
-            param: {
-              type: "string",
-              description: "",
-            },
-          },
-          required: ["param"],
+          properties: {},
         },
         this.baradzed
       ),
