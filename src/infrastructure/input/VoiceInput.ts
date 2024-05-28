@@ -28,7 +28,7 @@ export class VoiceInput implements IInput {
     listenOnStart: boolean,
     resolve,
     reject
-  ): Promise<string | null> {
+  ): Promise<void | null> {
     this.worker = new AudioWorker(
       this.console,
       this.picoApiKey,
@@ -40,12 +40,11 @@ export class VoiceInput implements IInput {
       .recordInput(listenOnStart)
       .then((filePath: string) => {
         this.console.debug("File recorded: " + filePath);
-        return resolve(filePath);
+        resolve(filePath);
       })
       .catch((err) => {
         this.console.error(err);
-        console.error("Unexpected: ", err);
-        return reject(err);
+        reject(err);
       });
   }
 
