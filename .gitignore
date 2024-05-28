@@ -6,3 +6,4 @@ dist
 output.mp3
 .env
 package-lock.json
+errors.log
