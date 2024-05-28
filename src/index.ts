@@ -180,6 +180,7 @@ try {
   visualization.initializing(false);
   await conversation.start();
 } catch (e) {
+  console.error(e);
   logger.error("Error initializing conversation", { error: e });
 }
 
