@@ -40,7 +40,7 @@ const logger = winston.createLogger({
 const gpt4Model = "gpt-4o";
 const gpt3Model = "gpt-3.5-turbo-1106";
 
-const consoleOutput = new ConsoleOutput();
+const consoleOutput = new ConsoleOutput(logger);
 const aiService = new OpenAIService(gpt4Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
 let voiceInput: VoiceInput;
