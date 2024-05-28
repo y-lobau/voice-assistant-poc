@@ -37,6 +37,7 @@ export class VoiceInput implements IInput {
         this.deviceIndex
       );
     } catch (err) {
+      console.error(err);
       this.console.error(err);
       reject(err);
     }
