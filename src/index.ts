@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import winston from "winston";
 
 import { KnizhnyVozSkill } from "./core/skills/KnizhnyVozSkill.js";
 import { ConsoleInput } from "./infrastructure/input/ConsoleInput.js";
@@ -25,6 +26,16 @@ import { BaradzedSkill } from "./core/skills/Baradzed.js";
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
+
+// Configure Winston logger
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: "errorslog", level: "error" }),
+  ],
+});
 
 const gpt4Model = "gpt-4o";
 const gpt3Model = "gpt-3.5-turbo-1106";
@@ -150,13 +161,16 @@ process.on("SIGINT", cleanup);
 
 // Catch unhandled exceptions
 process.on("uncaughtException", (error) => {
-  console.error("Unhandled Exception:", error);
+  logger.error("Unhandled Exception", {
+    message: error.message,
+    stack: error.stack,
+  });
   process.exit(1); // Exit with a failure code
 });
 
 // Catch unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  logger.error("Unhandled Rejection at Promise", { promise, reason });
   process.exit(1); // Exit with a failure code
 });
 
@@ -164,13 +178,15 @@ process.on("unhandledRejection", (reason, promise) => {
 try {
   await conversation.init();
   visualization.initializing(false);
-  await conversation.start().catch(console.error);
+  await conversation
+    .start()
+    .catch((error) => logger.error("Error starting conversation", { error }));
 } catch (e) {
-  console.error(e);
+  logger.error("Error initializing conversation", { error: e });
 }
 
 function cleanup(code) {
-  if (code > 0) console.error("Exiting with code", code);
+  if (code > 0) logger.error("Exiting with code", { code });
 
   if (cleanedUp) return;
   cleanedUp = true;
@@ -193,4 +209,4 @@ function cleanup(code) {
 //   .then(() => {
 //     console.log("Messages generated successfully!");
 //   })
-//   .catch(console.error);
+//   .catch((error) => logger.error("Error generating messages", { error }));
