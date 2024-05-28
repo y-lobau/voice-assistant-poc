@@ -178,13 +178,13 @@ process.on("unhandledRejection", (reason, promise) => {
 try {
   await conversation.init();
   visualization.initializing(false);
-  await conversation.start().catch((error) => logger.error(error));
+  await conversation.start();
 } catch (e) {
-  logger.error(e);
+  logger.error("Error initializing conversation", { error: e });
 }
 
 function cleanup(code) {
-  if (code > 0) logger.error("Exiting with code: " + code);
+  if (code > 0) logger.error("Exiting with code", { code });
 
   if (cleanedUp) return;
   cleanedUp = true;
@@ -207,4 +207,4 @@ function cleanup(code) {
 //   .then(() => {
 //     console.log("Messages generated successfully!");
 //   })
-//   .catch((error) => logger.error(error));
+//   .catch((error) => logger.error("Error generating messages", { error }));
