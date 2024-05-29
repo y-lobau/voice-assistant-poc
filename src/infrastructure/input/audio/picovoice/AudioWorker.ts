@@ -30,6 +30,7 @@ export class AudioWorker {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
+    this.console.info(`Device index: ${deviceIndex}`);
     this.listener = new PvRecorder(this.frameLength, deviceIndex);
   }
 
