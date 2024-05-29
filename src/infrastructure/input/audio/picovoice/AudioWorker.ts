@@ -7,7 +7,6 @@ import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { VoiceDetector } from "./VoiceDetector.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
-import { exec } from "child_process";
 
 export class AudioWorker {
   private isRecording = false;
@@ -32,14 +31,9 @@ export class AudioWorker {
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
 
     this.recorder = new PvRecorder(this.frameLength, 2);
-    exec("arecord -l", (err, stdout, stderr) => {
-      if (err) {
-        console.errorStr(`Error executing arecord: ${err.message}`);
-        return;
-      }
-      console.info("Available audio capture devices:");
-      console.info(stdout);
-    });
+    this.console.info(
+      `devices: ${PvRecorder.getAvailableDevices().map((d, i) => `${i}: ${d}`)}`
+    );
   }
 
   private resolveOutput(resolveCallback) {
