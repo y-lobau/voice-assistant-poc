@@ -31,9 +31,8 @@ export class AudioWorker {
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
 
-    this.getCaptureDeviceIndexByName("seeed-2mic-voicecard").then((index) => {
-      this.console.info(`device index: ${index}`);
-    });
+    const index = this.getCaptureDeviceIndexByName("seeed-2mic-voicecard");
+    this.console.info(`device index: ${index}`);
     this.recorder = new PvRecorder(this.frameLength, 2);
   }
 
