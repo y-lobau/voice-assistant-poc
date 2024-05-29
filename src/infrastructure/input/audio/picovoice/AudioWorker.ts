@@ -16,7 +16,7 @@ export class AudioWorker {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private frameLength = 512;
-  private listener;
+  private recorder;
 
   private porcupine: Porcupine;
   private standbyFlag = false;
@@ -24,13 +24,16 @@ export class AudioWorker {
   constructor(
     private console: IConsole,
     apiKey: string,
-    private eventBus: Omnibus<Events>,
-    deviceIndex: number
+    private eventBus: Omnibus<Events>
   ) {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
-    this.listener = new PvRecorder(this.frameLength, deviceIndex);
+
+    this.recorder = new PvRecorder(this.frameLength, 2);
+    this.console.info(
+      `devices: ${PvRecorder.getAvailableDevices().map((d, i) => `${i}: ${d}`)}`
+    );
   }
 
   private resolveOutput(resolveCallback) {
@@ -50,13 +53,13 @@ export class AudioWorker {
         () => this.resolveOutput(resolve),
         reject
       );
-      this.listener.start();
+      this.recorder.start();
 
       // Recording works in two phases: first, without hotword detection, then with it, if no input detected
       if (listenOnStart) this.setRecordingStarted();
 
-      while (this.listener.isRecording) {
-        const frame = await this.listener.read();
+      while (this.recorder.isRecording) {
+        const frame = await this.recorder.read();
         this.handleData(frame, reject);
       }
     });
@@ -161,7 +164,7 @@ export class AudioWorker {
       }
 
       this.stopped = true;
-      this.listener.stop();
+      this.recorder.stop();
       this.ffmpeg.stdin.end();
     });
   }

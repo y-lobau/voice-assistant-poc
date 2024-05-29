@@ -117,8 +117,7 @@ const componentFactory = {
       aiService,
       consoleOutput,
       process.env.PICOVOICE_API_KEY,
-      eventBus,
-      argv.deviceIndex
+      eventBus
     )),
   ConsoleOutput: () => consoleOutput,
   VoiceOutput: () =>
