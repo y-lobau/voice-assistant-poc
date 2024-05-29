@@ -7,6 +7,7 @@ import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { VoiceDetector } from "./VoiceDetector.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
+import { execSync } from "child_process";
 
 export class AudioWorker {
   private isRecording = false;
@@ -30,10 +31,35 @@ export class AudioWorker {
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
 
+    this.getCaptureDeviceIndexByName("seeed-2mic-voicecard").then((index) => {
+      this.console.info(`device index: ${index}`);
+    });
     this.recorder = new PvRecorder(this.frameLength, 2);
-    this.console.info(
-      `devices: ${PvRecorder.getAvailableDevices().map((d, i) => `${i}: ${d}`)}`
-    );
+  }
+
+  private getCaptureDeviceIndexByName(deviceName) {
+    try {
+      const stdout = execSync("arecord -l").toString();
+      const lines = stdout.split("\n");
+      let deviceIndex = null;
+
+      lines.forEach((line) => {
+        if (line.includes(deviceName)) {
+          const match = line.match(/card (\d+):/);
+          if (match && match[1]) {
+            deviceIndex = match[1];
+          }
+        }
+      });
+
+      if (deviceIndex !== null) {
+        return deviceIndex;
+      } else {
+        throw new Error(`Device "${deviceName}" not found.`);
+      }
+    } catch (err) {
+      throw new Error(`Error executing arecord -l: ${err.message}`);
+    }
   }
 
   private resolveOutput(resolveCallback) {
