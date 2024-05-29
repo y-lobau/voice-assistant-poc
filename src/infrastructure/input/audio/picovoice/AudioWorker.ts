@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { execSync, spawn } from "child_process";
 import fs from "fs";
 import { PvRecorder } from "@picovoice/pvrecorder-node";
 
@@ -16,7 +16,7 @@ export class AudioWorker {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private frameLength = 512;
-  private listener;
+  private recorder;
 
   private porcupine: Porcupine;
   private standbyFlag = false;
@@ -24,14 +24,47 @@ export class AudioWorker {
   constructor(
     private console: IConsole,
     apiKey: string,
-    private eventBus: Omnibus<Events>,
-    deviceIndex: number
+    private eventBus: Omnibus<Events>
   ) {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
-    this.console.info(`Device index: ${deviceIndex}`);
-    this.listener = new PvRecorder(this.frameLength, deviceIndex);
+
+    let index = -1;
+    try {
+      index = this.getCaptureDeviceIndexByName("seeed-2mic-voicecard");
+    } catch (err) {
+      this.console.errorStr(
+        `Error reading capture device index. Using default.\n${err}`
+      );
+    }
+    this.console.info(`device index: ${index}`);
+    this.recorder = new PvRecorder(this.frameLength, index);
+  }
+
+  private getCaptureDeviceIndexByName(deviceName) {
+    try {
+      const stdout = execSync("arecord -l").toString();
+      const lines = stdout.split("\n");
+      let deviceIndex = null;
+
+      lines.forEach((line) => {
+        if (line.includes(deviceName)) {
+          const match = line.match(/card (\d+):/);
+          if (match && match[1]) {
+            deviceIndex = match[1];
+          }
+        }
+      });
+
+      if (deviceIndex !== null) {
+        return deviceIndex;
+      } else {
+        throw new Error(`Device "${deviceName}" not found.`);
+      }
+    } catch (err) {
+      throw new Error(`Error executing arecord -l: ${err.message}`);
+    }
   }
 
   private resolveOutput(resolveCallback) {
@@ -51,13 +84,13 @@ export class AudioWorker {
         () => this.resolveOutput(resolve),
         reject
       );
-      this.listener.start();
+      this.recorder.start();
 
       // Recording works in two phases: first, without hotword detection, then with it, if no input detected
       if (listenOnStart) this.setRecordingStarted();
 
-      while (this.listener.isRecording) {
-        const frame = await this.listener.read();
+      while (this.recorder.isRecording) {
+        const frame = await this.recorder.read();
         this.handleData(frame, reject);
       }
     });
@@ -162,7 +195,7 @@ export class AudioWorker {
       }
 
       this.stopped = true;
-      this.listener.stop();
+      this.recorder.stop();
       this.ffmpeg.stdin.end();
     });
   }
