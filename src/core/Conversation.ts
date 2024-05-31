@@ -18,9 +18,9 @@ export class Conversation {
     private mode: "infinite" | "single" = "infinite"
   ) {}
 
-  private runLoop(immediateReplyPossible: boolean = true): Promise<void> {
+  private runLoop(startListening: boolean = false): Promise<void> {
     return this.input
-      .input({ immediateReplyPossible })
+      .input({ immediateReplyPossible: startListening })
       .then((input: string) => {
         this.eventBus.trigger("processingInputStarted");
 

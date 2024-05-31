@@ -2,7 +2,8 @@ import { Cobra } from "@picovoice/cobra-node";
 
 export class VoiceDetector {
   private silenceStart: number | null = null;
-  private silenceTimeout = 2000;
+  private silenceStartTimeout = 4000;
+  private silenceEndTimeout = 1000;
   private cobra;
   public voiceDetected: Boolean = false;
 
@@ -30,15 +31,20 @@ export class VoiceDetector {
 
   private isSilenceTimedOut(): boolean {
     if (!this.silenceStart) return false;
-    return Date.now() - this.silenceStart > this.silenceTimeout;
+    const timeout = this.voiceDetected
+      ? this.silenceEndTimeout
+      : this.silenceStartTimeout;
+    return Date.now() - this.silenceStart > timeout;
   }
 
   public setVoiceDetected(): void {
+    console.debug("Voice detected");
     this.voiceDetected = true;
     this.silenceStart = null;
   }
 
   public reset(): void {
+    console.debug("Voice detector reset");
     this.voiceDetected = false;
     this.silenceStart = null;
   }
