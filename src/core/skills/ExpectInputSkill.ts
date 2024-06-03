@@ -4,19 +4,20 @@ import { ISkill } from "../interfaces/ISkill.js";
 export class ExpectInputSkill implements ISkill {
   functions: SkillFunction[];
   onFinished: (skill: ISkill) => void;
-  systemPrompt = "";
+  systemPrompt =
+    "Выклікай функцыю expectInput() калі чакаеш нейкі адказ ад карыстальніка, калі твой адказ сканчваецца '?'";
 
   constructor() {
     this.functions = [
       new SkillFunction(
         "expectInput",
-        "выклікай функцыю,калі хочаш удакладніць мой запыт",
+        "перадавай у функцыю твой запыт",
         {
           type: "object",
           properties: {
             question: {
               type: "string",
-              description: "тваё пытанне ці ўдакладненне",
+              description: "твой запыт",
             },
           },
           required: ["question"],
