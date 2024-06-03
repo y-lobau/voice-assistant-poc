@@ -40,7 +40,12 @@ export class AudioWorker {
       );
     }
     this.console.info(`device index: ${index}`);
-    this.recorder = new PvRecorder(this.frameLength, index);
+
+    try {
+      this.recorder = new PvRecorder(this.frameLength, index);
+    } catch (err) {
+      this.console.errorStr(`Error creating recorder: ${err}`);
+    }
   }
 
   private getCaptureDeviceIndexByName(deviceName): number {
