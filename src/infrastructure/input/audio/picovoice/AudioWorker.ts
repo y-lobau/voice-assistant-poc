@@ -12,6 +12,7 @@ export class AudioWorker {
   private isRecording = false;
   private stopped = false;
   private voiceDetector: VoiceDetector;
+  private cardName = "seeed-2mic-voicecard";
 
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
@@ -32,7 +33,7 @@ export class AudioWorker {
 
     let index = -1;
     try {
-      index = this.getCaptureDeviceIndexByName("seeed-2mic-voicecard");
+      index = this.getCaptureDeviceIndexByName(this.cardName);
     } catch (err) {
       this.console.errorStr(
         `Error reading capture device index. Using default.\n${err}`
@@ -42,17 +43,17 @@ export class AudioWorker {
     this.recorder = new PvRecorder(this.frameLength, index);
   }
 
-  private getCaptureDeviceIndexByName(deviceName) {
+  private getCaptureDeviceIndexByName(deviceName): number {
     try {
       const stdout = execSync("arecord -l").toString();
       const lines = stdout.split("\n");
-      let deviceIndex = null;
+      let deviceIndex: number = null;
 
       lines.forEach((line) => {
         if (line.includes(deviceName)) {
           const match = line.match(/card (\d+):/);
           if (match && match[1]) {
-            deviceIndex = match[1];
+            deviceIndex = Number(match[1]);
           }
         }
       });
