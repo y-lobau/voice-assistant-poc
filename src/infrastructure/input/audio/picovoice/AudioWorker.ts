@@ -39,7 +39,7 @@ export class AudioWorker {
       );
     }
     this.console.info(`device index: ${index}`);
-    this.recorder = new PvRecorder(this.frameLength, 1);
+    this.recorder = new PvRecorder(this.frameLength, 2);
   }
 
   private getCaptureDeviceIndexByName(deviceName) {
