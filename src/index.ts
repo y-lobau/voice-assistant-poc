@@ -121,7 +121,7 @@ const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
 const skills = [
-  // new KnizhnyVozSkill(audioPlayer),
+  new KnizhnyVozSkill(audioPlayer),
   // new TimeSkill(output),
   // new PlayTestAudioSkill(audioPlayer),
   new BaradzedSkill(audioPlayer),
