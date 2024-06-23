@@ -22,6 +22,7 @@ import { BlinktController } from "./infrastructure/visualisation/BlinktControlle
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 import { BaradzedSkill } from "./core/skills/Baradzed.js";
+import { CobraVAD } from "./infrastructure/input/audio/picovoice/CobraVAD.js";
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
@@ -35,6 +36,7 @@ const audioPlayer = new AudioPlayer(consoleOutput);
 let voiceInput: VoiceInput;
 
 const eventBus = new Omnibus<Events>();
+const silence = new CobraVAD(process.env.PICOVOICE_API_KEY);
 
 // Define profiles
 const profiles = {
@@ -100,7 +102,8 @@ const componentFactory = {
       aiService,
       consoleOutput,
       process.env.PICOVOICE_API_KEY,
-      eventBus
+      eventBus,
+      silence
     )),
   ConsoleOutput: () => consoleOutput,
   VoiceOutput: () =>
@@ -121,10 +124,10 @@ const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
 const skills = [
-  new KnizhnyVozSkill(audioPlayer),
+  // new KnizhnyVozSkill(audioPlayer),
   // new TimeSkill(output),
   // new PlayTestAudioSkill(audioPlayer),
-  new BaradzedSkill(audioPlayer),
+  // new BaradzedSkill(audioPlayer),
 ];
 const skillBox = new SkillBox(skills, eventBus);
 FeedbackManager.init(eventBus, visualization);

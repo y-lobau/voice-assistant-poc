@@ -4,14 +4,13 @@ import { PvRecorder } from "@picovoice/pvrecorder-node";
 
 import { IConsole } from "../../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
-import { VoiceDetector } from "./VoiceDetector.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
+import { VoiceDetector as VoiceDetector } from "../../../../core/VoiceDetector.js";
 
 export class AudioWorker {
   private isRecording = false;
   private stopped = false;
-  private voiceDetector: VoiceDetector;
   private cardName = "seeed-2mic-voicecard";
 
   private outputFile = "./output.mp3"; // The path for the output file
@@ -25,10 +24,10 @@ export class AudioWorker {
   constructor(
     private console: IConsole,
     apiKey: string,
-    private eventBus: Omnibus<Events>
+    private eventBus: Omnibus<Events>,
+    private voiceDetector: VoiceDetector
   ) {
     this.cleanup();
-    this.voiceDetector = new VoiceDetector(0.8, apiKey);
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
 
     let index = -1;
@@ -97,7 +96,7 @@ export class AudioWorker {
 
       while (this.recorder.isRecording) {
         const frame = await this.recorder.read();
-        this.handleData(frame, reject);
+        await this.handleData(frame, reject);
       }
     });
   }
@@ -156,7 +155,7 @@ export class AudioWorker {
     this.eventBus.trigger("voiceStandbyStarted");
   }
 
-  private handleData(data, reject) {
+  private async handleData(data, reject) {
     try {
       if (!this.isRecording) {
         const keywordIndex = this.porcupine.process(data);
@@ -168,7 +167,9 @@ export class AudioWorker {
           this.setStandbyMode();
           return;
         }
-      } else if (this.voiceDetector.silenceThresholdReached(data)) {
+      } else if (
+        await this.voiceDetector.silenceThresholdReached(data, reject)
+      ) {
         this.console.debug("Silence threshold reached. Stopping recording");
 
         // If no input detected - restart listening
