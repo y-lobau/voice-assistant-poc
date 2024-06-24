@@ -3,6 +3,10 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { KnizhnyVozSkill } from "./core/skills/KnizhnyVozSkill.js";
+import { TimeSkill } from "./core/skills/TimeSkill.js";
+import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
+import { BaradzedSkill } from "./core/skills/Baradzed.js";
+
 import { ConsoleInput } from "./infrastructure/input/ConsoleInput.js";
 import { ConsoleOutput } from "./infrastructure/output/ConsoleOutput.js";
 import { SkillBox } from "./core/skills/SkillBox.js";
@@ -11,7 +15,6 @@ import { OpenAIService } from "./infrastructure/openAI/OpenAIService.js";
 import VoiceOutput from "./infrastructure/output/VoiceOutput.js";
 import { VoiceInput } from "./infrastructure/input/VoiceInput.js";
 import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisualization.js";
-import { TimeSkill } from "./core/skills/TimeSkill.js";
 import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.js";
 import { AudioPlayer } from "./infrastructure/output/AudioPlayer.js";
 import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog.js";
@@ -19,9 +22,8 @@ import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
-import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
-import { BaradzedSkill } from "./core/skills/Baradzed.js";
+
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
@@ -115,13 +117,13 @@ const simpleMessageHandler = new SimpleMessageDialog(
   consoleOutput
 );
 
-const assistantDialog = new AssistantDialog(consoleOutput, aiService);
+// const assistantDialog = new AssistantDialog(consoleOutput, aiService);
 let cleanedUp = false;
 const input = componentFactory[selectedProfile.input]();
 const output = componentFactory[selectedProfile.output]();
 
 const skills = [
-  new KnizhnyVozSkill(audioPlayer),
+  // new KnizhnyVozSkill(audioPlayer),
   // new TimeSkill(output),
   // new PlayTestAudioSkill(audioPlayer),
   new BaradzedSkill(audioPlayer),
