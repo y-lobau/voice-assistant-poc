@@ -24,9 +24,6 @@ import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 
-import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
-import { IVisualFeedback } from "./core/interfaces/IVisualFeedback.js";
-import { VoiceRecorder } from "./infrastructure/input/audio/VoiceRecorder.js";
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
@@ -145,6 +142,7 @@ try {
   );
 
   // const assistantDialog = new AssistantDialog(consoleOutput, aiService);
+  let cleanedUp = false;
   const input = componentFactory[selectedProfile.input]();
   const output = componentFactory[selectedProfile.output]();
 
@@ -154,7 +152,7 @@ try {
     // new PlayTestAudioSkill(audioPlayer),
     new BaradzedSkill(audioPlayer),
   ];
-  skillBox = new SkillBox(skills, eventBus);
+  const skillBox = new SkillBox(skills, eventBus);
   FeedbackManager.init(eventBus, visualization);
 
   const conversation = new Conversation(
