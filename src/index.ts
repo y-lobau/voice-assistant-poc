@@ -50,6 +50,11 @@ const profiles = {
     output: "VoiceOutput",
     visualization: "DeviceVisualization",
   },
+  "voice-dev": {
+    input: "VoiceInput",
+    output: "VoiceOutput",
+    visualization: "ConsoleVisualization",
+  },
   "console-voice": {
     input: "ConsoleInput",
     output: "VoiceOutput",
