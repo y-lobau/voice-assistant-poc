@@ -3,7 +3,7 @@ import fs from "fs";
 import { PvRecorder } from "@picovoice/pvrecorder-node";
 
 import { IConsole } from "../../../../core/interfaces/IConsole.js";
-import { Silence } from "../manual/Silence.js";
+import { Silence } from "./ManualSilence.js";
 
 export class AudioWorker {
   private recording = null;

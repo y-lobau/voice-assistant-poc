@@ -95,7 +95,7 @@ export class AudioWorker {
       if (listenOnStart) this.setRecordingStarted();
 
       while (this.recorder.isRecording) {
-        const frame = await this.recorder.read();
+        const frame: Int16Array = await this.recorder.read();
         await this.handleData(frame, reject);
       }
     });
@@ -155,7 +155,7 @@ export class AudioWorker {
     this.eventBus.trigger("voiceStandbyStarted");
   }
 
-  private async handleData(data, reject) {
+  private async handleData(data: Int16Array, reject) {
     try {
       if (!this.isRecording) {
         const keywordIndex = this.porcupine.process(data);

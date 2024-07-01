@@ -26,10 +26,7 @@ export class Silence {
   }
 
   public volume(data: Buffer | Int16Array): number {
-    const volume =
-      data instanceof Buffer
-        ? this.calculateVolumeFromBuffer(data)
-        : this.calculateVolumeFromArray(data);
+    const volume = this.calculateVolume(data);
     this.console.debug(`Volume: ${volume}`);
 
     // Update the running average volume
@@ -54,16 +51,7 @@ export class Silence {
     this.silenceThreshold = 0;
   }
 
-  private calculateVolumeFromBuffer(data: Buffer): number {
-    let sum = 0;
-    for (let i = 0; i < data.length; i += 2) {
-      let sample = data.readInt16LE(i);
-      sum += sample * sample;
-    }
-    return Math.sqrt(sum / (data.length / 2));
-  }
-
-  private calculateVolumeFromArray(data: Int16Array): number {
+  private calculateVolume(data: Int16Array | Buffer): number {
     let sum = 0;
     for (let i = 0; i < data.length; i += 2) {
       let sample = data[i];
