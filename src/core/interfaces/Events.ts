@@ -1,5 +1,6 @@
 export interface Events {
   voiceInputStarted: [];
+  emptyInputDetected: [];
   voiceInputFinished: [];
   voiceRecordingFinished: [];
   voiceStandbyStarted: [];

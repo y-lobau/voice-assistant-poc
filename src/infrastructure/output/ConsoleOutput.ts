@@ -6,13 +6,15 @@ import { Messages } from "../../Messages.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
 
 export class ConsoleOutput implements IOutput, IConsole {
-  debug(message: string): void {
-    console.debug(message);
+  debug(message: string, obj?: any | undefined): void {
+    if (obj) console.debug(message, obj);
+    else console.debug(message);
   }
   spinner = ora("Апрацоўка запыту...\n");
 
-  info(message: string): void {
-    console.log(message);
+  info(message: string, obj?: any): void {
+    if (obj) console.log(message, obj);
+    else console.log(message);
   }
 
   async output(message: string): Promise<void> {
@@ -22,13 +24,19 @@ export class ConsoleOutput implements IOutput, IConsole {
     });
   }
 
-  public async error(ex: Error): Promise<void> {
-    this.errorStr(ex.stack || ex.message || ex.toString());
-    this.errorStr(chalk.red(Messages.UNEXPECTED_ERROR));
+  public async error(ex: Error, obj?: any): Promise<void> {
+    if (obj) {
+      this.errorStr(ex.stack || ex.message || ex.toString(), obj);
+      this.errorStr(chalk.red(Messages.UNEXPECTED_ERROR), obj);
+    } else {
+      this.errorStr(ex.stack || ex.message || ex.toString());
+      this.errorStr(chalk.red(Messages.UNEXPECTED_ERROR));
+    }
   }
 
-  public errorStr(message: string): void {
-    console.log(chalk.red(message));
+  public errorStr(message: string, obj?: any): void {
+    if (obj) console.log(chalk.red(message), obj);
+    else console.log(chalk.red(message));
   }
 
   public setLoading(text: string): void {

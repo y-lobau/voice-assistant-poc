@@ -22,6 +22,11 @@ export class Conversation {
     return this.input
       .input({ immediateReplyPossible: startListening })
       .then((input: string) => {
+        if (!input) {
+          this.eventBus.trigger("emptyInputDetected");
+          return this.runLoop(true);
+        }
+
         this.eventBus.trigger("processingInputStarted");
 
         const skillsMessages = this.skills.serviceMessages();

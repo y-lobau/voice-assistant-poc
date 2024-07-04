@@ -1,21 +1,18 @@
 import { IInput } from "../../core/interfaces/IInput.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
-import { AudioWorker } from "./audio/picovoice/AudioWorker.js";
 import { IAI } from "../../core/interfaces/IAI.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../core/interfaces/Events.js";
-import { VoiceDetector } from "../../core/VoiceDetector.js";
-import { ISilence } from "../../core/interfaces/ISilence.js";
+import { AudioWorkerV2 } from "./audio/AudioWorkerV2.js";
 
 export class VoiceInput implements IInput {
-  private worker: AudioWorker;
+  private worker: AudioWorkerV2;
 
   constructor(
     private ai: IAI,
     private console: IConsole,
     private picoApiKey: string,
-    private eventBus: Omnibus<Events>,
-    private silence: ISilence
+    private eventBus: Omnibus<Events>
   ) {}
 
   input(options: any): Promise<string> {
@@ -31,12 +28,10 @@ export class VoiceInput implements IInput {
     resolve,
     reject
   ): Promise<string | null> {
-    const voiceDetector = new VoiceDetector(this.silence);
-    this.worker = new AudioWorker(
+    this.worker = new AudioWorkerV2(
       this.console,
       this.picoApiKey,
-      this.eventBus,
-      voiceDetector
+      this.eventBus
     );
 
     return this.worker
