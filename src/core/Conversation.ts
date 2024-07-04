@@ -56,8 +56,9 @@ export class Conversation {
             }
           })
           .catch((e) => {
-            this.output.error(e);
-            return this.runLoop(true);
+            this.output.error(e).then(() => {
+              return this.runLoop(true);
+            });
           });
       });
   }

@@ -18,7 +18,7 @@ export class AudioWorkerV2 {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private recorder: SpeechRecorder;
-  // private speechProbabilityThreshold = 0.5;
+  private speechProbabilityThreshold = 0.5;
 
   // How many frames of silence to wait before subsequent voice chunk is finalized.
   // This is used to prevent cutting off the last part of the voice chunk.
@@ -66,21 +66,19 @@ export class AudioWorkerV2 {
         consecutiveFramesForSilence: this.framesOfSilence,
         device: index,
         onChunkStart: () => {
-          console.debug("Voice started");
+          // console.debug("Voice started");
         },
         onAudio: (data) => {
           this.handleAudioData(data);
         },
         onChunkEnd: () => {
-          console.debug("Voice ended");
+          // console.debug("Voice ended");
           this.silence.setStarted();
         },
       });
     } catch (err) {
       this.console.errorStr(`Error creating recorder: ${err}`);
     }
-
-    this.silence.setStarted();
 
     if (this.debugWavFile) {
       this.debugWavFile = new wav.FileWriter(this.debugFilename, {
@@ -125,6 +123,7 @@ export class AudioWorkerV2 {
 
   private setRecordingStarted() {
     this.isRecordingStarted = true;
+    this.silence.reset();
     this.eventBus.trigger("voiceInputStarted");
   }
 
@@ -177,7 +176,7 @@ export class AudioWorkerV2 {
     }
   }
 
-  private stopRecordingAndExit(): void {
+  private finilizeSession(): void {
     if (!this.isRecordingStarted) {
       return;
     }
@@ -194,63 +193,73 @@ export class AudioWorkerV2 {
     // Maybe we don't need to check the 'probability'. It is used to optimize the output size (excluding non-speech parts).
     // It is not yet clear how do these 3 parts (speaking, speech, probability) correlate.
     // 'probability' may negatively influence the output by excluding some meaningful speech parts, let's test it.
-    const voiceDetected = speaking;
-    // && speech;
-    // && probability >= this.speechProbabilityThreshold;
+    const voiceDetected =
+      speaking && speech && probability >= this.speechProbabilityThreshold;
 
     // this.console.debug(
     //   `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
     // );
 
+    // TODO: handle case when file is too small and http 400 is returned
+
     try {
       if (!this.isRecordingStarted) {
-        const wakeWordDetected =
-          this.porcupine.process(audio as Int16Array) !== -1;
-
-        // this.console.debug(`Checking for wake word: ${wakeWordDetected}`);
-
-        if (wakeWordDetected) {
-          this.console.debug("wake word detected. Recording started.");
-          this.setRecordingStarted();
-        } else {
-          this.setStandbyMode();
-        }
+        this.listenToWakeWord(audio);
+      } else if (voiceDetected) {
+        this.handleVoice(audio, probability);
       } else if (this.silence.isTimedOut()) {
-        this.console.debug("Silence timed out. Stopping recording");
-
-        // If no input detected - restart listening
-        if (!this.silence.voiceInSessionDetected) {
-          this.isRecordingStarted = false;
-          this.silence.reset();
-          this.eventBus.trigger("voiceInputFinished");
-          return;
-        }
-        this.stopRecordingAndExit();
+        this.handleSilenceTimeout();
       } else {
-        if (!voiceDetected) {
-          this.silence.setStarted();
-        } else {
-          // Streaming audio to FFmpeg
-          this.silence.setVoiceDetected();
-          this.console.debug("Streaming audio to FFmpeg....");
-          const buffer = Buffer.from(
-            audio.buffer,
-            audio.byteOffset,
-            audio.byteLength
-          );
-
-          if (this.debugWavFile) {
-            this.debugFile.write(
-              Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength)
-            );
-          }
-          this.ffmpeg.stdin.write(buffer);
-        }
+        this.silence.setOrcontinue();
       }
     } catch (error) {
       this.recordRejector(error);
     }
   };
+
+  private handleVoice(audio, probability) {
+    // Streaming audio to FFmpeg
+    this.silence.setVoiceDetected();
+    this.console.debug(`Streaming audio with probability: ${probability}`);
+    const buffer = Buffer.from(
+      audio.buffer,
+      audio.byteOffset,
+      audio.byteLength
+    );
+
+    if (this.debugWavFile) {
+      this.debugFile.write(
+        Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength)
+      );
+    }
+    this.ffmpeg.stdin.write(buffer);
+  }
+
+  private listenToWakeWord(audio) {
+    const wakeWordDetected = this.porcupine.process(audio as Int16Array) !== -1;
+
+    // this.console.debug(`Checking for wake word: ${wakeWordDetected}`);
+
+    if (wakeWordDetected) {
+      this.console.debug("wake word detected. Recording started.");
+      this.setRecordingStarted();
+    } else {
+      this.setStandbyMode();
+    }
+  }
+
+  private handleSilenceTimeout() {
+    this.console.debug("Silence timed out. Stopping recording");
+    this.eventBus.trigger("voiceInputFinished");
+
+    // If no input detected - restart listening
+    if (this.silence.voiceInSessionDetected) {
+      this.finilizeSession();
+    } else {
+      this.isRecordingStarted = false;
+      this.silence.reset();
+    }
+  }
 
   public recordInput(listenOnStart: boolean): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
