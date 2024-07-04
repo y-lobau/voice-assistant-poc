@@ -11,8 +11,6 @@ import { Silence } from "./Silence.js";
 
 export class AudioWorkerV2 {
   private isRecordingStarted = false;
-  private voiceRecorded = false;
-  private standbyFlag = false;
   private silence: Silence;
 
   private cardName = "seeed-2mic-voicecard";
@@ -20,9 +18,18 @@ export class AudioWorkerV2 {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private recorder: SpeechRecorder;
-  private speechProbabilityThreshold = 0.5;
+  // private speechProbabilityThreshold = 0.5;
 
-  private fileWriter;
+  // How many frames of silence to wait before subsequent voice chunk is finalized.
+  // This is used to prevent cutting off the last part of the voice chunk.
+  // The value should be at least 1, because the last frame of the voice chunk is always silent.
+  // I tested it and with 3 it seems to work fine.
+  private framesOfSilence = 3;
+  private standbyMode = false;
+
+  // Is used for debugging purposes to check what is being recorded
+  private debugFile: wav.FileWriter;
+  private debugFilename = "debug.wav";
 
   private porcupine: Porcupine;
   private recordRejector;
@@ -30,21 +37,16 @@ export class AudioWorkerV2 {
   constructor(
     private console: IConsole,
     apiKey: string,
-    private eventBus: Omnibus<Events>
+    private eventBus: Omnibus<Events>,
+    private debugWavFile: boolean = false
   ) {
-    this.cleanup();
+    this.cleanupAllFiles();
     this.silence = new Silence();
 
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
     console.debug(
       `Porcupine version: ${this.porcupine.version}, sample rate: ${this.porcupine.sampleRate}, frame length: ${this.porcupine.frameLength}`
     );
-
-    this.fileWriter = new wav.FileWriter("output.wav", {
-      channels: 1,
-      sampleRate: this.porcupine.sampleRate,
-      bitDepth: 16,
-    });
 
     console.debug("devices: ", devices());
 
@@ -61,19 +63,31 @@ export class AudioWorkerV2 {
     try {
       this.recorder = new SpeechRecorder({
         samplesPerFrame: this.porcupine.frameLength,
+        consecutiveFramesForSilence: this.framesOfSilence,
         device: index,
         onChunkStart: () => {
-          console.debug(`${Date.now()} Voice started`);
+          console.debug("Voice started");
         },
         onAudio: (data) => {
           this.handleAudioData(data);
         },
         onChunkEnd: () => {
-          this.onVoiceEnded();
+          console.debug("Voice ended");
+          this.silence.setStarted();
         },
       });
     } catch (err) {
       this.console.errorStr(`Error creating recorder: ${err}`);
+    }
+
+    this.silence.setStarted();
+
+    if (this.debugWavFile) {
+      this.debugWavFile = new wav.FileWriter(this.debugFilename, {
+        channels: 1,
+        sampleRate: this.porcupine.sampleRate,
+        bitDepth: 16,
+      });
     }
   }
 
@@ -103,14 +117,13 @@ export class AudioWorkerV2 {
   }
 
   private resolveOutput(resolveCallback) {
-    const file = this.voiceRecorded ? this.outputFile : null;
+    const file = this.silence.voiceInSessionDetected ? this.outputFile : null;
 
     this.eventBus.trigger("voiceRecordingFinished");
     resolveCallback(file);
   }
 
   private setRecordingStarted() {
-    this.standbyFlag = false;
     this.isRecordingStarted = true;
     this.eventBus.trigger("voiceInputStarted");
   }
@@ -157,9 +170,11 @@ export class AudioWorkerV2 {
   }
 
   private setStandbyMode() {
-    this.standbyFlag = true;
-    this.isRecordingStarted = false;
-    this.eventBus.trigger("voiceStandbyStarted");
+    if (!this.standbyMode) {
+      this.standbyMode = true;
+      this.isRecordingStarted = false;
+      this.eventBus.trigger("voiceStandbyStarted");
+    }
   }
 
   private stopRecordingAndExit(): void {
@@ -179,67 +194,63 @@ export class AudioWorkerV2 {
     // Maybe we don't need to check the 'probability'. It is used to optimize the output size (excluding non-speech parts).
     // It is not yet clear how do these 3 parts (speaking, speech, probability) correlate.
     // 'probability' may negatively influence the output by excluding some meaningful speech parts, let's test it.
-    const speechDetected = speaking;
+    const voiceDetected = speaking;
     // && speech;
     // && probability >= this.speechProbabilityThreshold;
 
-    this.console.debug(
-      `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
-    );
-
-    if (!speechDetected) return;
-
-    this.fileWriter.write(
-      Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength)
-    );
+    // this.console.debug(
+    //   `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
+    // );
 
     try {
       if (!this.isRecordingStarted) {
         const wakeWordDetected =
           this.porcupine.process(audio as Int16Array) !== -1;
 
-        this.console.debug(`Checking for wake word: ${wakeWordDetected}`);
+        // this.console.debug(`Checking for wake word: ${wakeWordDetected}`);
 
         if (wakeWordDetected) {
           this.console.debug("wake word detected. Recording started.");
           this.setRecordingStarted();
-        } else if (!this.standbyFlag) {
+        } else {
           this.setStandbyMode();
         }
+      } else if (this.silence.isTimedOut()) {
+        this.console.debug("Silence timed out. Stopping recording");
+
+        // If no input detected - restart listening
+        if (!this.silence.voiceInSessionDetected) {
+          this.isRecordingStarted = false;
+          this.silence.reset();
+          this.eventBus.trigger("voiceInputFinished");
+          return;
+        }
+        this.stopRecordingAndExit();
       } else {
-        // Streaming audio to FFmpeg
-        this.voiceRecorded = true;
-        this.console.debug("Streaming audio to FFmpeg....");
-        const buffer = Buffer.from(
-          audio.buffer,
-          audio.byteOffset,
-          audio.byteLength
-        );
-        this.ffmpeg.stdin.write(buffer);
+        if (!voiceDetected) {
+          this.silence.setStarted();
+        } else {
+          // Streaming audio to FFmpeg
+          this.silence.setVoiceDetected();
+          this.console.debug("Streaming audio to FFmpeg....");
+          const buffer = Buffer.from(
+            audio.buffer,
+            audio.byteOffset,
+            audio.byteLength
+          );
+
+          if (this.debugWavFile) {
+            this.debugFile.write(
+              Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength)
+            );
+          }
+          this.ffmpeg.stdin.write(buffer);
+        }
       }
     } catch (error) {
       this.recordRejector(error);
     }
   };
-
-  private onVoiceEnded() {
-    console.debug(`${Date.now()} Voice ended`);
-
-    if (!this.voiceRecorded) {
-      this.isRecordingStarted = false;
-      return;
-    }
-
-    if (this.silence.isTimedOut() && this.voiceRecorded) {
-      console.debug("Silence timeout reached. Stopping recording.");
-      this.stopRecordingAndExit();
-    }
-
-    if (this.voiceRecorded) {
-      console.debug("Stopping recording and exiting AudioWorker");
-      this.stopRecordingAndExit();
-    } else this.setStandbyMode();
-  }
 
   public recordInput(listenOnStart: boolean): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
@@ -257,23 +268,29 @@ export class AudioWorkerV2 {
     });
   }
 
+  private cleanupFiles(fileNames: string[]) {
+    fileNames.forEach((fileName) => {
+      if (fs.existsSync(fileName)) {
+        fs.unlink(fileName, (err) => {
+          if (err) {
+            this.console.errorStr(
+              `Failed to delete file at ${fileName}: ${err}`
+            );
+          } else {
+            console.log(`File ${fileName} has been removed`);
+          }
+        });
+      }
+    });
+  }
+
+  private cleanupAllFiles() {
+    this.cleanupFiles([this.outputFile, this.debugFilename]);
+  }
+
   public cleanup() {
     // Remove the output file after recording
     if (this.porcupine) this.porcupine.release();
-    if (fs.existsSync(this.outputFile)) {
-      console.log("WAV file has been created");
-
-      fs.unlink(this.outputFile, (err) => {
-        if (err) {
-          this.console.errorStr(
-            `Failed to delete file at ${this.outputFile}: ${err}`
-          );
-        } else {
-          this.console.debug(
-            `File at ${this.outputFile} deleted successfully.`
-          );
-        }
-      });
-    }
+    this.cleanupAllFiles();
   }
 }

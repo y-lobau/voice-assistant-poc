@@ -44,7 +44,10 @@ export class OpenAIService implements IAI {
       language: "be",
     });
     return transcription.then((res) => {
-      this.console.info("Transcription: " + res.text);
+      this.console.info(
+        `\n-------------- Transcription --------------\n${res.text}` +
+          "\n-----------------------------------------"
+      );
       return res.text;
     });
   }
