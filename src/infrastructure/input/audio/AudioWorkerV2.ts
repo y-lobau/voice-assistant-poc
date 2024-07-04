@@ -10,8 +10,8 @@ import wav from "wav";
 import { Silence } from "./Silence.js";
 
 export class AudioWorkerV2 {
-  private isRecordingStarted = false;
-  private silence: Silence;
+  private isRecording = false;
+  private silence: Silence = new Silence();
 
   private cardName = "seeed-2mic-voicecard";
 
@@ -40,14 +40,20 @@ export class AudioWorkerV2 {
     private eventBus: Omnibus<Events>,
     private debugWavFile: boolean = false
   ) {
-    this.cleanupAllFiles();
-    this.silence = new Silence();
-
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
-    console.debug(
-      `Porcupine version: ${this.porcupine.version}, sample rate: ${this.porcupine.sampleRate}, frame length: ${this.porcupine.frameLength}`
-    );
+    this.cleanupAllFiles();
+    this.initVoiceRecorder();
+    if (this.debugWavFile) {
+      this.debugWavFile = new wav.FileWriter(this.debugFilename, {
+        channels: 1,
+        sampleRate: this.porcupine.sampleRate,
+        bitDepth: 16,
+      });
+    }
+  }
 
+  private initVoiceRecorder() {
+    // TODO: replace getCaptureDeviceIndexByName() with devices() from speech-recorder
     console.debug("devices: ", devices());
 
     let index = -1;
@@ -79,55 +85,9 @@ export class AudioWorkerV2 {
     } catch (err) {
       this.console.errorStr(`Error creating recorder: ${err}`);
     }
-
-    if (this.debugWavFile) {
-      this.debugWavFile = new wav.FileWriter(this.debugFilename, {
-        channels: 1,
-        sampleRate: this.porcupine.sampleRate,
-        bitDepth: 16,
-      });
-    }
   }
 
-  private getCaptureDeviceIndexByName(deviceName): number {
-    try {
-      const stdout = execSync("arecord -l").toString();
-      const lines = stdout.split("\n");
-      let deviceIndex: number = null;
-
-      lines.forEach((line) => {
-        if (line.includes(deviceName)) {
-          const match = line.match(/card (\d+):/);
-          if (match && match[1]) {
-            deviceIndex = Number(match[1]);
-          }
-        }
-      });
-
-      if (deviceIndex !== null) {
-        return deviceIndex;
-      } else {
-        throw new Error(`Device "${deviceName}" not found.`);
-      }
-    } catch (err) {
-      throw new Error(`Error executing arecord -l: ${err.message}`);
-    }
-  }
-
-  private resolveOutput(resolveCallback) {
-    const file = this.silence.voiceInSessionDetected ? this.outputFile : null;
-
-    this.eventBus.trigger("voiceRecordingFinished");
-    resolveCallback(file);
-  }
-
-  private setRecordingStarted() {
-    this.isRecordingStarted = true;
-    this.silence.reset();
-    this.eventBus.trigger("voiceInputStarted");
-  }
-
-  private setupFFmpeg(
+  private initFFmpeg(
     filePath: string,
     onComplete: () => void,
     onError: (err) => void
@@ -168,16 +128,54 @@ export class AudioWorkerV2 {
     });
   }
 
+  private getCaptureDeviceIndexByName(deviceName): number {
+    try {
+      const stdout = execSync("arecord -l").toString();
+      const lines = stdout.split("\n");
+      let deviceIndex: number = null;
+
+      lines.forEach((line) => {
+        if (line.includes(deviceName)) {
+          const match = line.match(/card (\d+):/);
+          if (match && match[1]) {
+            deviceIndex = Number(match[1]);
+          }
+        }
+      });
+
+      if (deviceIndex !== null) {
+        return deviceIndex;
+      } else {
+        throw new Error(`Device "${deviceName}" not found.`);
+      }
+    } catch (err) {
+      throw new Error(`Error executing arecord -l: ${err.message}`);
+    }
+  }
+
+  private resolveOutput(resolveCallback) {
+    const file = this.silence.voiceInSessionDetected ? this.outputFile : null;
+
+    this.eventBus.trigger("voiceRecordingFinished");
+    resolveCallback(file);
+  }
+
+  private setRecordingStarted() {
+    this.isRecording = true;
+    this.silence.reset();
+    this.eventBus.trigger("voiceInputStarted");
+  }
+
   private setStandbyMode() {
     if (!this.standbyMode) {
       this.standbyMode = true;
-      this.isRecordingStarted = false;
+      this.isRecording = false;
       this.eventBus.trigger("voiceStandbyStarted");
     }
   }
 
   private finilizeSession(): void {
-    if (!this.isRecordingStarted) {
+    if (!this.isRecording) {
       return;
     }
     this.recorder.stop();
@@ -203,7 +201,7 @@ export class AudioWorkerV2 {
     // TODO: handle case when file is too small and http 400 is returned
 
     try {
-      if (!this.isRecordingStarted) {
+      if (!this.isRecording) {
         this.listenToWakeWord(audio);
       } else if (voiceDetected) {
         this.handleVoice(audio, probability);
@@ -216,6 +214,19 @@ export class AudioWorkerV2 {
       this.recordRejector(error);
     }
   };
+
+  private listenToWakeWord(audio) {
+    const wakeWordDetected = this.porcupine.process(audio as Int16Array) !== -1;
+
+    // this.console.debug(`Checking for wake word: ${wakeWordDetected}`);
+
+    if (wakeWordDetected) {
+      this.console.debug("wake word detected. Recording started.");
+      this.setRecordingStarted();
+    } else {
+      this.setStandbyMode();
+    }
+  }
 
   private handleVoice(audio, probability) {
     // Streaming audio to FFmpeg
@@ -233,48 +244,6 @@ export class AudioWorkerV2 {
       );
     }
     this.ffmpeg.stdin.write(buffer);
-  }
-
-  private listenToWakeWord(audio) {
-    const wakeWordDetected = this.porcupine.process(audio as Int16Array) !== -1;
-
-    // this.console.debug(`Checking for wake word: ${wakeWordDetected}`);
-
-    if (wakeWordDetected) {
-      this.console.debug("wake word detected. Recording started.");
-      this.setRecordingStarted();
-    } else {
-      this.setStandbyMode();
-    }
-  }
-
-  private handleSilenceTimeout() {
-    this.console.debug("Silence timed out. Stopping recording");
-    this.eventBus.trigger("voiceInputFinished");
-
-    // If no input detected - restart listening
-    if (this.silence.voiceInSessionDetected) {
-      this.finilizeSession();
-    } else {
-      this.isRecordingStarted = false;
-      this.silence.reset();
-    }
-  }
-
-  public recordInput(listenOnStart: boolean): Promise<string> {
-    return new Promise<string>(async (resolve, reject) => {
-      this.setupFFmpeg(
-        this.outputFile,
-        () => this.resolveOutput(resolve),
-        reject
-      );
-
-      // Recording works in two phases: first, without hotword detection, then with it, if no input detected
-      if (listenOnStart) this.setRecordingStarted();
-
-      this.recordRejector = reject;
-      this.recorder.start();
-    });
   }
 
   private cleanupFiles(fileNames: string[]) {
@@ -295,6 +264,35 @@ export class AudioWorkerV2 {
 
   private cleanupAllFiles() {
     this.cleanupFiles([this.outputFile, this.debugFilename]);
+  }
+
+  private handleSilenceTimeout() {
+    this.console.debug("Silence timed out. Stopping recording");
+    this.eventBus.trigger("voiceInputFinished");
+
+    // If no input detected - restart listening
+    if (this.silence.voiceInSessionDetected) {
+      this.finilizeSession();
+    } else {
+      this.isRecording = false;
+      this.silence.reset();
+    }
+  }
+
+  public recordInput(listenOnStart: boolean): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+      this.initFFmpeg(
+        this.outputFile,
+        () => this.resolveOutput(resolve),
+        reject
+      );
+
+      // Recording works in two phases: first, without hotword detection, then with it, if no input detected
+      if (listenOnStart) this.setRecordingStarted();
+
+      this.recordRejector = reject;
+      this.recorder.start();
+    });
   }
 
   public cleanup() {
