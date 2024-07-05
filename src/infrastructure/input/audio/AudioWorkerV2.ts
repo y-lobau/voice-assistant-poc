@@ -73,6 +73,7 @@ export class AudioWorkerV2 {
         device: index,
         onChunkStart: () => {
           // console.debug("Voice started");
+          this.silence.setVoiceDetected();
         },
         onAudio: (data) => {
           this.handleAudioData(data);
@@ -208,7 +209,7 @@ export class AudioWorkerV2 {
       } else if (this.silence.isTimedOut()) {
         this.handleSilenceTimeout();
       } else {
-        this.silence.setOrcontinue();
+        this.silence.setOrContinue();
       }
     } catch (error) {
       this.recordRejector(error);
@@ -230,7 +231,6 @@ export class AudioWorkerV2 {
 
   private handleVoice(audio, probability) {
     // Streaming audio to FFmpeg
-    this.silence.setVoiceDetected();
     this.console.debug(`Streaming audio with probability: ${probability}`);
     const buffer = Buffer.from(
       audio.buffer,

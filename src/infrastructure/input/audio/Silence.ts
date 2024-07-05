@@ -23,7 +23,7 @@ export class Silence {
     this.silenceStart = Date.now();
   }
 
-  public setOrcontinue(): void {
+  public setOrContinue(): void {
     if (this.silenceStart) return;
     this.setStarted();
   }
