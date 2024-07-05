@@ -7,7 +7,7 @@ import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../core/interfaces/Events.js";
 import wav from "wav";
-import { Silence } from "./Silence.js";
+import { Silence } from "../../../core/Silence.js";
 
 export class AudioWorker {
   private isRecording = false;
