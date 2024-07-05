@@ -9,7 +9,7 @@ import { Events } from "../../../core/interfaces/Events.js";
 import wav from "wav";
 import { Silence } from "./Silence.js";
 
-export class AudioWorkerV2 {
+export class AudioWorker {
   private isRecording = false;
   private silence: Silence = new Silence();
 

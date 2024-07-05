@@ -3,10 +3,10 @@ import { IConsole } from "../../core/interfaces/IConsole.js";
 import { IAI } from "../../core/interfaces/IAI.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../core/interfaces/Events.js";
-import { AudioWorkerV2 } from "./audio/AudioWorkerV2.js";
+import { AudioWorker } from "./audio/AudioWorker.js";
 
 export class VoiceInput implements IInput {
-  private worker: AudioWorkerV2;
+  private worker: AudioWorker;
 
   constructor(
     private ai: IAI,
@@ -28,11 +28,7 @@ export class VoiceInput implements IInput {
     resolve,
     reject
   ): Promise<string | null> {
-    this.worker = new AudioWorkerV2(
-      this.console,
-      this.picoApiKey,
-      this.eventBus
-    );
+    this.worker = new AudioWorker(this.console, this.picoApiKey, this.eventBus);
 
     return this.worker
       .recordInput(listenOnStart)
