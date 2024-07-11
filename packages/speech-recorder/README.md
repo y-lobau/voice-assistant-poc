@@ -4,10 +4,10 @@
 
 ## Building SpeechRecorder for arm64
 
-If you want to build speech-recorder from source, first install the necessary dependencies by running:
+Building speech-recorder from source:
 
 ```bash
-  ./setup.sh arm64
+  ./setup.sh arm64 # setup dependencies
 
   # Copy unzipped https://github.com/microsoft/onnxruntime/releases/download/v# # 1.18.1/onnxruntime-linux-aarch64-1.18.1.tgz to speech-recorder/lib/3rd_part# y/onnxruntime
 
@@ -15,7 +15,7 @@ If you want to build speech-recorder from source, first install the necessary de
   # -> libonnxruntime.so.1.18.1
   # Same replace in binding.gyp
 
-  ./build.sh arm64
-  npm pack
+  ./build.sh arm64 # building package
+  npm pack # assemble package artefact
 
 ```

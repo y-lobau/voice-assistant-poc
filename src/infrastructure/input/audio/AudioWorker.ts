@@ -54,6 +54,7 @@ export class AudioWorker {
 
   private initVoiceRecorder() {
     const deviceIndex = this.getCaptureDeviceIndexByName(this.cardName);
+    this.console.debug(`Using device index: ${deviceIndex}`);
 
     try {
       this.recorder = new SpeechRecorder({
