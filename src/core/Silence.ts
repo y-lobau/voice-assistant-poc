@@ -5,12 +5,15 @@ export class Silence {
 
   public voiceInSessionDetected: Boolean = false;
 
-  public isTimedOut(): boolean {
-    if (!this.silenceStart) return false;
-    const timeout = this.voiceInSessionDetected
+  public get timeout(): number {
+    return this.voiceInSessionDetected
       ? this.silenceEndTimeout
       : this.silenceStartTimeout;
-    return Date.now() - this.silenceStart > timeout;
+  }
+
+  public isTimedOut(): boolean {
+    if (!this.silenceStart) return false;
+    return Date.now() - this.silenceStart > this.timeout;
   }
 
   public setVoiceDetected(): void {
@@ -19,7 +22,7 @@ export class Silence {
   }
 
   public setStarted(): void {
-    console.debug("Silence started");
+    console.debug(`Silence started`);
     this.silenceStart = Date.now();
   }
 

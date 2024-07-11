@@ -249,7 +249,9 @@ export class AudioWorker {
   }
 
   private handleSilenceTimeout() {
-    this.console.debug("Silence timed out. Stopping recording");
+    this.console.debug(
+      `Silence ${this.silence.timeout / 1000}s timed out. Stopping recording`
+    );
     this.eventBus.trigger("voiceInputFinished");
 
     // If no input detected - restart listening
