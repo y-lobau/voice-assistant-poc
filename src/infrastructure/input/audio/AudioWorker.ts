@@ -40,6 +40,8 @@ export class AudioWorker {
     private eventBus: Omnibus<Events>,
     private debugWavFile: boolean = false
   ) {
+    this.console.debug("Initializing AudioWorker");
+
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
     this.cleanupAllFiles();
     this.initVoiceRecorder();
@@ -55,7 +57,6 @@ export class AudioWorker {
   private initVoiceRecorder() {
     const deviceIndex = this.getCaptureDeviceIndexByName(this.cardName);
     this.console.info(`Using device index: ${deviceIndex}`);
-    this.console.debug(`Using device index: ${deviceIndex}`);
 
     try {
       this.recorder = new SpeechRecorder({
@@ -274,10 +275,17 @@ export class AudioWorker {
       );
 
       // Recording works in two phases: first, without hotword detection, then with it, if no input detected
-      if (listenOnStart) this.setRecordingStarted();
+      if (listenOnStart) {
+        this.console.debug(
+          "listenOnStart is true. Starting recording immediately."
+        );
+      }
 
       this.recordRejector = reject;
+
+      this.console.debug("recorder.start()");
       this.recorder.start();
+      this.console.debug("recorder.start()... done");
     });
   }
 
