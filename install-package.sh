@@ -12,7 +12,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # cd /path/to/your/project
   # npm link speech-recorder
   npm uninstall speech-recorder
-  npm install packages/speech-recorder/prebuilds/speech-recorder-v2.1.0-napi-v6-linux-arm64.tar.gz --no-save
+  npm install packages/speech-recorder/speech-recorder-2.1.0.tgz --no-save
 else
   echo "Unsupported OS: $OSTYPE"
   exit 1
