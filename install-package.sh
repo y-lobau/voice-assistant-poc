@@ -7,10 +7,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # Linux (assuming this is your Raspberry Pi)
   echo "installing speech-recorder on rpi..."
-  cd /path/to/your/local/speech-recorder
-  npm link
-  cd /path/to/your/project
-  npm link speech-recorder
+  # cd /path/to/your/local/speech-recorder
+  # npm link
+  # cd /path/to/your/project
+  # npm link speech-recorder
+
+  npm install /packages/speech-recorder/prebuilds/speech-recorder-v2.1.0-napi-v6-linux-arm64.tar.gz
 else
   echo "Unsupported OS: $OSTYPE"
   exit 1
