@@ -10,15 +10,15 @@ import { Callback } from "../../core/models/Callback.js";
 import { IAI } from "../../core/interfaces/IAI.js";
 import { SkillFunction } from "../../core/models/SkillFunction.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
-import { Assistant } from "openai/resources/beta/assistants/assistants.js";
-import {
-  Message,
-  TextContentBlock,
-} from "openai/resources/beta/threads/messages/messages.js";
+
 import {
   FunctionToolCall,
   RunStep,
 } from "openai/resources/beta/threads/runs/steps.js";
+import {
+  Message,
+  TextContentBlock,
+} from "openai/resources/beta/threads/messages.js";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
@@ -52,9 +52,9 @@ export class OpenAIService implements IAI {
     });
   }
 
-  public getAssistant(id: string): Promise<Assistant> {
-    return this.openai.beta.assistants.retrieve(id);
-  }
+  // public getAssistant(id: string): Promise<Assistant> {
+  //   return this.openai.beta.assistants.retrieve(id);
+  // }
 
   public sendCompletions(
     messages: ChatCompletionMessage[],
