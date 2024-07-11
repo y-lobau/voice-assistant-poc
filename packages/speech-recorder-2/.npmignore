@@ -1,9 +1,0 @@
-build
-prebuilds
-lib/3rd_party
-lib/build
-lib/CMakeLists.txt
-lib/include
-lib/src
-lib/test
-lib/install

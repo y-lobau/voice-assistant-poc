@@ -1,0 +1,1 @@
+cmd_/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libonnxruntime.so.1.18.1 := rm -rf "/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libonnxruntime.so.1.18.1" && cp -af "/home/rpi/speech-recorder/tmp/speech-recorder/lib/install/lib/libonnxruntime.so.1.18.1" "/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libonnxruntime.so.1.18.1"

@@ -1,0 +1,13 @@
+# Target labels
+ readerwriterqueue-populate
+# Source files and their labels
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/CMakeFiles/readerwriterqueue-populate
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/CMakeFiles/readerwriterqueue-populate.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/CMakeFiles/readerwriterqueue-populate-complete.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-build.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-configure.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-download.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-install.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-mkdir.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-patch.rule
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/readerwriterqueue-populate-prefix/src/readerwriterqueue-populate-stamp/readerwriterqueue-populate-test.rule

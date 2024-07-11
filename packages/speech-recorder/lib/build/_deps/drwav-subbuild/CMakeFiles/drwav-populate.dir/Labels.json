@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/CMakeFiles/drwav-populate"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/CMakeFiles/drwav-populate.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/CMakeFiles/drwav-populate-complete.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-build.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-configure.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-download.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-install.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-patch.rule"
+		},
+		{
+			"file" : "/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/drwav-subbuild/drwav-populate-prefix/src/drwav-populate-stamp/drwav-populate-test.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"drwav-populate"
+		],
+		"name" : "drwav-populate"
+	}
+}

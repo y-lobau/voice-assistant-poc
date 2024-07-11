@@ -1,0 +1,8 @@
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/include/readerwriterqueue/atomicops.h
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/include/readerwriterqueue/readerwriterqueue.h
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/include/readerwriterqueue/readerwritercircularbuffer.h
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/include/readerwriterqueue/LICENSE.md
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/lib/libspeechrecorder.so
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/lib/libonnxruntime.so
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/lib/libonnxruntime.so.1.18.1
+/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/../install/lib/libportaudio.so
