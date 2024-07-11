@@ -1,1 +1,0 @@
-cmd_/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libspeechrecorder.so := rm -rf "/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libspeechrecorder.so" && cp -af "/home/rpi/speech-recorder/tmp/speech-recorder/lib/install/lib/libspeechrecorder.so" "/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libspeechrecorder.so"

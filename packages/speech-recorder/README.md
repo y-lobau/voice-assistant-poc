@@ -77,31 +77,37 @@ You can get a list of supported devices with:
 
 ### Options
 
-* `consecutiveFramesForSilence`: How many frames of audio must be silent before `onChunkEnd` is fired. Default `10`.
-* `consecutiveFramesForSpeaking`: How many frames of audio must be speech before `onChunkStart` is fired. Default `1`.
-* `device`: ID of the device to use for input (i.e., from the example above). Specify `-1` to use the system default. Default `-1`.
-* `leadingBufferFrames`: How many frames of audio to keep in a buffer that's included in `onChunkStart`. Default `10`.
-* `onChunkStart`: Callback to be executed when speech starts.
-* `onAudio`: Callback to be executed when any audio comes in.
-* `onChunkEnd`: Callback to be executed when speech ends.
-* `samplesPerFrame`: How many audio samples to be included in each frame from the microphone. Default `480`.
-* `sampleRate`: Audio sample rate. Default `16000`.
-* `sileroVadBufferSize`: How many audio samples to pass to the VAD. Default `2000`.
-* `sileroVadRateLimit`: Rate limit, in frames, for how frequently to call the VAD. Default `3`.
-* `sileroVadSilenceThreshold`: Probability threshold for speech to transition to silence. Default `0.1`.
-* `sileroVadSpeakingThreshold`: Probability threshold for silence to transition to speech. Default `0.3`.
-* `webrtcVadLevel`: Aggressiveness for the first-pass VAD filter. `0` is least aggressive, and `3` is most aggressive. Default `3`.
-* `webrtcVadBufferSize`: How many audio samples to pass to the first-pass VAD filter. Default `480`. Can only be `160`, `320`, or `480`.
-* `webrtcVadResultsSize`: How many first-pass VAD filter results to keep in history. Default `10`.
+- `consecutiveFramesForSilence`: How many frames of audio must be silent before `onChunkEnd` is fired. Default `10`.
+- `consecutiveFramesForSpeaking`: How many frames of audio must be speech before `onChunkStart` is fired. Default `1`.
+- `device`: ID of the device to use for input (i.e., from the example above). Specify `-1` to use the system default. Default `-1`.
+- `leadingBufferFrames`: How many frames of audio to keep in a buffer that's included in `onChunkStart`. Default `10`.
+- `onChunkStart`: Callback to be executed when speech starts.
+- `onAudio`: Callback to be executed when any audio comes in.
+- `onChunkEnd`: Callback to be executed when speech ends.
+- `samplesPerFrame`: How many audio samples to be included in each frame from the microphone. Default `480`.
+- `sampleRate`: Audio sample rate. Default `16000`.
+- `sileroVadBufferSize`: How many audio samples to pass to the VAD. Default `2000`.
+- `sileroVadRateLimit`: Rate limit, in frames, for how frequently to call the VAD. Default `3`.
+- `sileroVadSilenceThreshold`: Probability threshold for speech to transition to silence. Default `0.1`.
+- `sileroVadSpeakingThreshold`: Probability threshold for silence to transition to speech. Default `0.3`.
+- `webrtcVadLevel`: Aggressiveness for the first-pass VAD filter. `0` is least aggressive, and `3` is most aggressive. Default `3`.
+- `webrtcVadBufferSize`: How many audio samples to pass to the first-pass VAD filter. Default `480`. Can only be `160`, `320`, or `480`.
+- `webrtcVadResultsSize`: How many first-pass VAD filter results to keep in history. Default `10`.
 
 ## Building SpeechRecorder
 
 If you want to build speech-recorder from source, first install the necessary dependencies by running:
 
-    ./setup.sh <arch>
+```bash
+  ./setup.sh arm64
 
-Where `<arch>` specifies the architecture you'd like to build for and is one of `x86`, `x64`, or `arm64`. If you're not sure, you probably want `x64`.
+  # Copy unzipped https://github.com/microsoft/onnxruntime/releases/download/v# # 1.18.1/onnxruntime-linux-aarch64-1.18.1.tgz to speech-recorder/lib/3rd_part# y/onnxruntime
 
-Then, you can build speech-recorder with:
+  # Replace in speech-recorder/lib/CMakeLists.txt : libonnxruntime.so.1.10.0 ->
+  # -> libonnxruntime.so.1.18.1
+  # Same replace in binding.gyp
 
-    ./build.sh <arch>
+  ./build.sh arm64
+  npm pack
+
+```

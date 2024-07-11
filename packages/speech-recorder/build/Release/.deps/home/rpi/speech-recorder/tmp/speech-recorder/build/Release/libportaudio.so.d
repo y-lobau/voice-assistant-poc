@@ -1,1 +1,0 @@
-cmd_/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libportaudio.so := rm -rf "/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libportaudio.so" && cp -af "/home/rpi/speech-recorder/tmp/speech-recorder/lib/install/lib/libportaudio.so" "/home/rpi/speech-recorder/tmp/speech-recorder/build/Release/libportaudio.so"

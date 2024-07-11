@@ -1,3 +1,0 @@
-/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/CMakeFiles/readerwriterqueue-populate.dir
-/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/CMakeFiles/edit_cache.dir
-/home/rpi/speech-recorder/tmp/speech-recorder/lib/build/_deps/readerwriterqueue-subbuild/CMakeFiles/rebuild_cache.dir
