@@ -53,27 +53,16 @@ export class AudioWorker {
   }
 
   private initVoiceRecorder() {
-    // TODO: replace getCaptureDeviceIndexByName() with devices() from speech-recorder
-    console.debug("devices: ", devices());
-
-    let index = -1;
-    try {
-      index = this.getCaptureDeviceIndexByName(this.cardName);
-    } catch (err) {
-      this.console.errorStr(
-        `Error reading capture device index. Using default.\n${err}`
-      );
-    }
-    this.console.info(`device index: ${index}`);
+    const deviceIndex = this.getCaptureDeviceIndexByName(this.cardName);
 
     try {
       this.recorder = new SpeechRecorder({
         samplesPerFrame: this.porcupine.frameLength,
         consecutiveFramesForSilence: this.framesOfSilence,
-        device: index,
+        device: deviceIndex,
         onChunkStart: () => {
           // console.debug("Voice started");
-          this.silence.setVoiceDetected();
+          // this.silence.setVoiceDetected();
         },
         onAudio: (data) => {
           this.handleAudioData(data);
@@ -130,27 +119,19 @@ export class AudioWorker {
   }
 
   private getCaptureDeviceIndexByName(deviceName): number {
-    try {
-      const stdout = execSync("arecord -l").toString();
-      const lines = stdout.split("\n");
-      let deviceIndex: number = null;
+    const devicesList = devices();
+    console.debug("devices: ", devicesList);
 
-      lines.forEach((line) => {
-        if (line.includes(deviceName)) {
-          const match = line.match(/card (\d+):/);
-          if (match && match[1]) {
-            deviceIndex = Number(match[1]);
-          }
-        }
-      });
-
-      if (deviceIndex !== null) {
-        return deviceIndex;
-      } else {
-        throw new Error(`Device "${deviceName}" not found.`);
-      }
-    } catch (err) {
-      throw new Error(`Error executing arecord -l: ${err.message}`);
+    const device = devicesList.find((device) =>
+      device.name.includes(deviceName)
+    );
+    if (device) {
+      return device.id;
+    } else {
+      this.console.errorStr(
+        `Device "${deviceName}" not found. Using default index -1.`
+      );
+      return -1;
     }
   }
 
@@ -230,6 +211,7 @@ export class AudioWorker {
   }
 
   private handleVoice(audio, probability) {
+    this.silence.setVoiceDetected();
     // Streaming audio to FFmpeg
     this.console.debug(`Streaming audio with probability: ${probability}`);
     const buffer = Buffer.from(
