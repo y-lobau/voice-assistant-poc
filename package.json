@@ -22,7 +22,8 @@
     "clean": "rm -rf dist",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
-    "copy-assets": "copyfiles -u 1 assets/** dist/assets"
+    "copy-assets": "copyfiles -u 1 assets/** dist/assets",
+    "postinstall": "./install-package.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
