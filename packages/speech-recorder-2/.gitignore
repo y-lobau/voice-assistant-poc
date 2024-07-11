@@ -1,0 +1,14 @@
+.env
+.DS_Store
+*.log
+*.wav
+*.raw
+*.map
+bin
+build
+dist
+node_modules
+lib/3rd_party/portaudio
+lib/3rd_party/onnxruntime
+lib/install
+prebuilds
