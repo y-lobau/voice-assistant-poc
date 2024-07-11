@@ -6,4 +6,3 @@ dist
 output.*
 .env
 package-lock.json
-package-lock.json
