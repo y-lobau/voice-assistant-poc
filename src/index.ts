@@ -154,11 +154,15 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
+await voiceInput.input(true).then((filePath: string) => {
+  return voiceInput.input({ immediateReplyPossible: true });
+});
+
 // Start the conversation
 try {
-  await conversation.init();
+  // await conversation.init();
   visualization.initializing(false);
-  await conversation.start().catch(console.error);
+  // await conversation.start().catch(console.error);
 } catch (e) {
   console.error(e);
 }
