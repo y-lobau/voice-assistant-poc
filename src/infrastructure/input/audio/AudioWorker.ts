@@ -43,7 +43,6 @@ export class AudioWorker {
     this.console.debug("Initializing AudioWorker");
 
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
-    this.cleanupAllFiles();
     this.initVoiceRecorder();
     if (this.debugWavFile) {
       this.debugWavFile = new wav.FileWriter(this.debugFilename, {
@@ -163,7 +162,7 @@ export class AudioWorker {
     if (!this.isRecording) {
       return;
     }
-    this.recorder.stop();
+    const v = this.recorder.stop();
     this.ffmpeg.stdin.end();
   }
 
@@ -267,19 +266,20 @@ export class AudioWorker {
   }
 
   public recordInput(listenOnStart: boolean): Promise<string> {
+    this.cleanupAllFiles();
+    // Recording works in two phases: first, without hotword detection, then with it, if no input detected
+    if (listenOnStart) {
+      this.console.debug(
+        "listenOnStart is true. Starting recording immediately."
+      );
+    }
+
     return new Promise<string>(async (resolve, reject) => {
       this.initFFmpeg(
         this.outputFile,
         () => this.resolveOutput(resolve),
         reject
       );
-
-      // Recording works in two phases: first, without hotword detection, then with it, if no input detected
-      if (listenOnStart) {
-        this.console.debug(
-          "listenOnStart is true. Starting recording immediately."
-        );
-      }
 
       this.recordRejector = reject;
 
