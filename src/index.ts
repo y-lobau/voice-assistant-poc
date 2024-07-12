@@ -155,7 +155,7 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
-function rec() {
+async function rec() {
   const recorder = new VoiceRecorder(
     consoleOutput,
     480,
@@ -168,14 +168,19 @@ function rec() {
       console.log("Voice ended");
     }
   );
+
+  console.log("recording started");
   recorder.start();
+
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
   recorder.stop();
 
   console.log("recording stopped");
 }
 
-rec();
-rec();
+await rec();
+await rec();
 
 // Start the conversation
 try {
