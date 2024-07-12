@@ -43,7 +43,7 @@ export class AudioWorker {
     this.console.debug("Initializing AudioWorker");
 
     this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
-    this.initVoiceRecorder();
+
     if (this.debugWavFile) {
       this.debugWavFile = new wav.FileWriter(this.debugFilename, {
         channels: 1,
@@ -97,13 +97,19 @@ export class AudioWorker {
     ]);
 
     // Debugging FFmpeg's output
-    this.ffmpeg.stdout.on("data", (data) =>
-      this.console.debug(`FFmpeg stdout: ${data}`)
+    this.ffmpeg.stdout.on(
+      "data",
+      (data) => {}
+      // this.console.debug(`FFmpeg stdout: ${data}`)
     );
-    this.ffmpeg.stderr.on("data", (data) =>
-      this.console.debug(`FFmpeg stderr: ${data}`)
+    this.ffmpeg.stderr.on(
+      "data",
+      (data) => {}
+      // this.console.debug(`FFmpeg stderr: ${data}`)
     );
     this.ffmpeg.stdin.on("end", () => {
+      {
+      }
       this.console.debug("FFmpeg stdin stream ended.");
     });
 
@@ -112,7 +118,7 @@ export class AudioWorker {
       onComplete();
     });
     this.ffmpeg.on("error", (err) => {
-      onError(err);
+      // onError(err);
     });
 
     this.console.debug("Initializing FFmpeg...done");
@@ -251,14 +257,25 @@ export class AudioWorker {
     }
   }
 
-  public recordInput(listenOnStart: boolean): Promise<string> {
+  private reset() {
     this.cleanupAllFiles();
+    this.isRecording = false;
+    this.standbyMode = false;
+    this.silence.reset();
+  }
+
+  public recordInput(listenOnStart: boolean): Promise<string> {
+    this.reset();
+
     // Recording works in two phases: first, without hotword detection, then with it, if no input detected
     if (listenOnStart) {
       this.console.debug(
         "listenOnStart is true. Starting recording immediately."
       );
+      this.setRecordingStarted();
     }
+
+    this.initVoiceRecorder();
 
     return new Promise<string>(async (resolve, reject) => {
       this.initFFmpeg(
@@ -268,14 +285,6 @@ export class AudioWorker {
       );
 
       this.recordRejector = reject;
-
-      this.console.debug("recorder.start()");
-      this.recorder.start();
-      this.console.debug("recorder.start()... done");
-
-      this.console.debug("recorder.stop()...");
-      this.recorder.stop();
-      this.console.debug("recorder.stop()... done");
 
       this.console.debug("recorder.start()");
       this.recorder.start();

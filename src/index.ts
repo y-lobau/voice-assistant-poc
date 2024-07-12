@@ -36,7 +36,6 @@ const audioPlayer = new AudioPlayer(consoleOutput);
 let voiceInput: VoiceInput;
 
 const eventBus = new Omnibus<Events>();
-// const silence = new CobraVAD(process.env.PICOVOICE_API_KEY);
 
 // Define profiles
 const profiles = {
@@ -155,38 +154,11 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
-async function rec() {
-  const recorder = new VoiceRecorder(
-    consoleOutput,
-    480,
-    "seeed-2mic-voicecard",
-    3,
-    (data) => {
-      console.log(data);
-    },
-    () => {
-      console.log("Voice ended");
-    }
-  );
-
-  console.log("recording started");
-  recorder.start();
-
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  recorder.stop();
-
-  console.log("recording stopped");
-}
-
-await rec();
-await rec();
-
 // Start the conversation
 try {
   // await conversation.init();
   visualization.initializing(false);
-  // await conversation.start().catch(console.error);
+  await conversation.start().catch(console.error);
 } catch (e) {
   console.error(e);
 }
