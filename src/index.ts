@@ -22,6 +22,7 @@ import { BlinktController } from "./infrastructure/visualisation/BlinktControlle
 import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 import { BaradzedSkill } from "./core/skills/Baradzed.js";
+import { VoiceRecorder } from "./infrastructure/input/audio/VoiceRecorder.js";
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
@@ -154,11 +155,27 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
-await voiceInput
-  .input({ immediateReplyPossible: true })
-  .then((filePath: string) => {
-    return voiceInput.input({ immediateReplyPossible: true });
-  });
+function rec() {
+  const recorder = new VoiceRecorder(
+    consoleOutput,
+    480,
+    "seeed-2mic-voicecard",
+    3,
+    (data) => {
+      console.log(data);
+    },
+    () => {
+      console.log("Voice ended");
+    }
+  );
+  recorder.start();
+  recorder.stop();
+
+  console.log("recording stopped");
+}
+
+rec();
+rec();
 
 // Start the conversation
 try {

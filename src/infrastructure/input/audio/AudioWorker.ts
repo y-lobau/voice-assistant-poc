@@ -1,6 +1,5 @@
-import { execSync, spawn } from "child_process";
+import { spawn } from "child_process";
 import fs from "fs";
-import { SpeechRecorder, devices } from "speech-recorder";
 
 import { IConsole } from "../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
@@ -8,6 +7,7 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../core/interfaces/Events.js";
 import wav from "wav";
 import { Silence } from "../../../core/Silence.js";
+import { VoiceRecorder } from "./VoiceRecorder.js";
 
 export class AudioWorker {
   private isRecording = false;
@@ -17,7 +17,7 @@ export class AudioWorker {
 
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
-  private recorder: SpeechRecorder;
+  private recorder: VoiceRecorder;
   private speechProbabilityThreshold = 0.5;
 
   // How many frames of silence to wait before subsequent voice chunk is finalized.
@@ -54,26 +54,20 @@ export class AudioWorker {
   }
 
   private initVoiceRecorder() {
-    const deviceIndex = this.getCaptureDeviceIndexByName(this.cardName);
-    this.console.info(`Using device index: ${deviceIndex}`);
-
     try {
-      this.recorder = new SpeechRecorder({
-        samplesPerFrame: this.porcupine.frameLength,
-        consecutiveFramesForSilence: this.framesOfSilence,
-        device: deviceIndex,
-        onChunkStart: () => {
-          // console.debug("Voice started");
-          // this.silence.setVoiceDetected();
-        },
-        onAudio: (data) => {
+      this.recorder = new VoiceRecorder(
+        this.console,
+        this.porcupine.frameLength,
+        this.cardName,
+        this.framesOfSilence,
+        (data) => {
           this.handleAudioData(data);
         },
-        onChunkEnd: () => {
+        () => {
           // console.debug("Voice ended");
           this.silence.setStarted();
-        },
-      });
+        }
+      );
     } catch (err) {
       this.console.errorStr(`Error creating recorder: ${err}`);
     }
@@ -84,6 +78,8 @@ export class AudioWorker {
     onComplete: () => void,
     onError: (err) => void
   ): void {
+    this.console.debug("Initializing FFmpeg...");
+
     this.ffmpeg = spawn("ffmpeg", [
       "-f",
       "s16le",
@@ -118,23 +114,8 @@ export class AudioWorker {
     this.ffmpeg.on("error", (err) => {
       onError(err);
     });
-  }
 
-  private getCaptureDeviceIndexByName(deviceName): number {
-    const devicesList = devices();
-    console.debug("devices: ", devicesList);
-
-    const device = devicesList.find((device) =>
-      device.name.includes(deviceName)
-    );
-    if (device) {
-      return device.id;
-    } else {
-      this.console.errorStr(
-        `Device "${deviceName}" not found. Using default index -1.`
-      );
-      return -1;
-    }
+    this.console.debug("Initializing FFmpeg...done");
   }
 
   private resolveOutput(resolveCallback) {
@@ -162,8 +143,13 @@ export class AudioWorker {
     if (!this.isRecording) {
       return;
     }
-    const v = this.recorder.stop();
+
+    this.console.debug("Finilizing session...");
+
+    this.recorder.stop();
     this.ffmpeg.stdin.end();
+
+    this.console.debug("Finilizing session... done");
   }
 
   private handleAudioData = async ({
@@ -282,6 +268,14 @@ export class AudioWorker {
       );
 
       this.recordRejector = reject;
+
+      this.console.debug("recorder.start()");
+      this.recorder.start();
+      this.console.debug("recorder.start()... done");
+
+      this.console.debug("recorder.stop()...");
+      this.recorder.stop();
+      this.console.debug("recorder.stop()... done");
 
       this.console.debug("recorder.start()");
       this.recorder.start();

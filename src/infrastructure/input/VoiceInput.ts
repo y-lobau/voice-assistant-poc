@@ -13,7 +13,9 @@ export class VoiceInput implements IInput {
     private console: IConsole,
     private picoApiKey: string,
     private eventBus: Omnibus<Events>
-  ) {}
+  ) {
+    this.worker = new AudioWorker(this.console, this.picoApiKey, this.eventBus);
+  }
 
   input(options: any): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -28,8 +30,6 @@ export class VoiceInput implements IInput {
     resolve,
     reject
   ): Promise<string | null> {
-    this.worker = new AudioWorker(this.console, this.picoApiKey, this.eventBus);
-
     return this.worker
       .recordInput(listenOnStart)
       .then((filePath: string) => {
