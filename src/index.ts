@@ -155,22 +155,15 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
-const worker = new AudioWorker(
-  consoleOutput,
-  process.env.PICOVOICE_API_KEY,
-  eventBus
-);
-
 function run() {
-  return worker.recordInput(true).then((filePath: string) => {
+  return voiceInput.worker.recordInput(true).then((filePath: string) => {
     console.log("File 1 recorded: " + filePath);
-    worker.recordInput(true).then((filePath: string) => {
+    voiceInput.worker.recordInput(true).then((filePath: string) => {
       console.log("File 2 recorded: " + filePath);
     });
   });
 }
 
-await run();
 await run();
 
 // Start the conversation
