@@ -170,9 +170,9 @@ export class AudioWorker {
     const voiceDetected =
       speaking && speech && probability >= this.speechProbabilityThreshold;
 
-    this.console.debug(
-      `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
-    );
+    // this.console.debug(
+    //   `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
+    // );
 
     // TODO: handle case when file is too small and http 400 is returned
 

@@ -41,7 +41,7 @@ export class Conversation {
             this.eventBus.trigger("processingInputFinished");
             let immediateReplyPossible = false;
 
-            if (responseText) {
+            if (false) {
               immediateReplyPossible = true;
               return this.output
                 .output(responseText)

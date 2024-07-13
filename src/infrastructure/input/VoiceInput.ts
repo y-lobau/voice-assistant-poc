@@ -6,7 +6,7 @@ import { Events } from "../../core/interfaces/Events.js";
 import { AudioWorker } from "./audio/AudioWorker.js";
 
 export class VoiceInput implements IInput {
-  public worker: AudioWorker;
+  private worker: AudioWorker;
 
   constructor(
     private ai: IAI,
