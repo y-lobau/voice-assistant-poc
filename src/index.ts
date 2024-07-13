@@ -155,22 +155,19 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
-// function run() {
-//   return voiceInput.worker.recordInput(true).then((filePath: string) => {
-//     console.log("File 1 recorded: " + filePath);
-//     voiceInput.worker.recordInput(true).then((filePath: string) => {
-//       console.log("File 2 recorded: " + filePath);
-//     });
-//   });
-// }
+function run() {
+  return voiceInput
+    .input({ immediateReplyPossible: true })
+    .then((text) => voiceInput.input({ immediateReplyPossible: true }));
+}
 
-// await run();
+await run();
 
 // Start the conversation
 try {
-  await conversation.init();
-  visualization.initializing(false);
-  await conversation.start().catch(console.error);
+  // await conversation.init();
+  // visualization.initializing(false);
+  // await conversation.start().catch(console.error);
 } catch (e) {
   console.error(e);
 }
