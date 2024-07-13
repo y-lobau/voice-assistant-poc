@@ -156,7 +156,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 async function run() {
-  await audioPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
+  // await audioPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
 
   await voiceInput.input({ immediateReplyPossible: true });
 
