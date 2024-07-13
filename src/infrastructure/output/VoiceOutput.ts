@@ -31,14 +31,13 @@ export default class VoiceOutput implements IOutput {
     this.eventBus.trigger("processingInputStarted");
 
     return this.ai.textToVoice(text).then((buffer: Buffer) => {
-      this.eventBus.trigger("processingInputFinished");
-      this.eventBus.trigger("talkingStarted");
-
-      return this.audioPlayer
-        .play(buffer)
-        .then(() => this.eventBus.trigger("talkingFinished"))
-        .catch(reject)
-        .then(resolve);
+      // this.eventBus.trigger("processingInputFinished");
+      // this.eventBus.trigger("talkingStarted");
+      // return this.audioPlayer
+      //   .play(buffer)
+      //   .then(() => this.eventBus.trigger("talkingFinished"))
+      //   .catch(reject)
+      //   .then(resolve);
     });
   }
 }

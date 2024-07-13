@@ -174,7 +174,7 @@ export class AudioWorker {
     //   `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
     // );
 
-    // TODO: handle case when file is too small and http 400 is returned
+    // TODO: handle case when file is too small and http 400 is returned: don't process if speech duration is < X sec
 
     try {
       if (!this.isRecording) {
