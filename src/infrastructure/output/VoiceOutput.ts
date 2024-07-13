@@ -31,8 +31,10 @@ export default class VoiceOutput implements IOutput {
     this.eventBus.trigger("processingInputStarted");
 
     return this.ai.textToVoice(text).then((buffer: Buffer) => {
-      // this.eventBus.trigger("processingInputFinished");
-      // this.eventBus.trigger("talkingStarted");
+      this.eventBus.trigger("processingInputFinished");
+      this.eventBus.trigger("talkingStarted");
+
+      return;
       // return this.audioPlayer
       //   .play(buffer)
       //   .then(() => this.eventBus.trigger("talkingFinished"))
