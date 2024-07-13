@@ -293,6 +293,7 @@ export class AudioWorker {
   }
 
   public cleanup() {
+    this.console.info("Cleaning up AudioWorker...");
     // Remove the output file after recording
     if (this.porcupine) this.porcupine.release();
     this.cleanupAllFiles();
