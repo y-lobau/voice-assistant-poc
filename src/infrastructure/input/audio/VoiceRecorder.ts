@@ -17,6 +17,7 @@ export class VoiceRecorder {
 
     try {
       this.recorder = new SpeechRecorder({
+        sampleRate: 16000,
         samplesPerFrame: this.frameLength,
         consecutiveFramesForSilence: this.framesOfSilence,
         device: deviceIndex,
