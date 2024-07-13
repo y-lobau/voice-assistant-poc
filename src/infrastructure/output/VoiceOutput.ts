@@ -30,16 +30,17 @@ export default class VoiceOutput implements IOutput {
   private async textToVoice(text: string, resolve, reject): Promise<void> {
     this.eventBus.trigger("processingInputStarted");
 
-    return this.ai.textToVoice(text).then((buffer: Buffer) => {
-      this.eventBus.trigger("processingInputFinished");
-      this.eventBus.trigger("talkingStarted");
+    const audioBuffer = this.ai.textToVoice(text);
 
-      return;
-      // return this.audioPlayer
-      //   .play(buffer)
-      //   .then(() => this.eventBus.trigger("talkingFinished"))
-      //   .catch(reject)
-      //   .then(resolve);
-    });
+    this.eventBus.trigger("processingInputFinished");
+    this.eventBus.trigger("talkingStarted");
+
+    resolve();
+
+    // return this.audioPlayer
+    //   .play(buffer)
+    //   .then(() => this.eventBus.trigger("talkingFinished"))
+    //   .catch(reject)
+    //   .then(resolve);
   }
 }
