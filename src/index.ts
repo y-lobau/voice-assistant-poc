@@ -24,6 +24,7 @@ import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.
 import { BaradzedSkill } from "./core/skills/Baradzed.js";
 import { VoiceRecorder } from "./infrastructure/input/audio/VoiceRecorder.js";
 import { AudioWorker } from "./infrastructure/input/audio/AudioWorker.js";
+import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
@@ -155,9 +156,11 @@ process.on("unhandledRejection", (reason, promise) => {
   process.exit(1); // Exit with a failure code
 });
 
+const vlcPlayer = new VLCPlayer(consoleOutput);
+
 async function run() {
   console.log("Playing audio");
-  await audioPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
+  await vlcPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
   console.log("Playing audio...done");
   await voiceInput.input({ immediateReplyPossible: true });
 }
