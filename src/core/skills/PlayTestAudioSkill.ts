@@ -26,10 +26,13 @@ export class PlayTestAudioSkill implements ISkill {
   }
 
   private play(): void {
-    this.player.playUrl(
-      "https://library.knizhnyvoz.com/books/65e986c87ead03e15985d14f/chapter-3bb30091-87c8-41cd-9be6-ef5b3bf79842.mp3",
-      () => this.onPlayFinished()
-    );
+    this.player
+      .playUrl(
+        "https://library.knizhnyvoz.com/books/65e986c87ead03e15985d14f/chapter-3bb30091-87c8-41cd-9be6-ef5b3bf79842.mp3"
+      )
+      .then(() => {
+        this.onPlayFinished();
+      });
   }
 
   private onPlayFinished(): void {

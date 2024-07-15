@@ -86,7 +86,9 @@ export class KnizhnyVozSkill implements ISkill {
 
   private playMP3(mp3Url: string): Promise<void> {
     this.isPlaying = true;
-    return this.player.playUrl(mp3Url, () => this.onPlayFinished());
+    return this.player.playUrl(mp3Url).then(() => {
+      this.onPlayFinished();
+    });
   }
 
   private onPlayFinished() {

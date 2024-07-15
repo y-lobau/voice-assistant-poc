@@ -49,15 +49,11 @@ export class AudioPlayer {
     });
   }
 
-  public playUrl(
-    url: string,
-    onFinished: () => void = () => {}
-  ): Promise<void> {
+  public playUrl(url: string): Promise<void> {
     this.stop();
 
     return new Promise((resolve, reject) => {
-      this.spawnProcess(onFinished, reject, [url]);
-      resolve();
+      this.spawnProcess(resolve, reject, [url]);
     });
   }
 
