@@ -24,6 +24,7 @@ export class AudioPlayer {
     this.process.on("close", (code) => {
       if (code === 0) {
         this.console.debug("mpg123 finished playing the audio successfully.");
+        this.stop();
         onPlayFinished();
       } else {
         this.console.errorStr(`mpg123 exited with code ${code}`);
