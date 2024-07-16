@@ -75,15 +75,17 @@ export class VLCPlayer {
     throw new Error("Timeout waiting for VLC to be ready");
   }
 
-  public async init(): Promise<void> {
-    await this.startVLCProcess();
+  private onStopped(): void {
+    this.resolver();
+  }
 
+  private subscribeToVLCStatus(): void {
     this.statusChecker = setInterval(async () => {
       try {
         const status = await this.vlc.status();
         if (this.state && status.state !== this.state) {
           if (status.state === "stopped") {
-            this.onExit();
+            this.onStopped();
           }
         }
         // console.debug("VLC status:", status.state);
@@ -95,24 +97,24 @@ export class VLCPlayer {
     }, 200);
   }
 
+  public async init(): Promise<void> {
+    await this.startVLCProcess();
+  }
+
   public cleanup(): void {
     if (this.vlcProcess) {
       this.vlcProcess.kill();
       this.vlcProcess = null;
     }
-
     if (this.statusChecker) {
       clearInterval(this.statusChecker);
       this.statusChecker = null;
     }
   }
 
-  public onExit(): void {
-    this.cleanup();
-    this.resolver();
-  }
-
   public playUrl(url: string): Promise<void> {
+    this.subscribeToVLCStatus();
+
     return new Promise((resolve, reject) => {
       this.resolver = resolve;
       this.rejector = reject;

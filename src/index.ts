@@ -187,6 +187,8 @@ function cleanup(code) {
   skillBox.cleanup();
   if (voiceInput) voiceInput.cleanup();
 
+  vlcPlayer.cleanup();
+
   process.exit();
 }
 
