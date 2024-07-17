@@ -1,18 +1,16 @@
 import { spawn } from "child_process";
 import fs from "fs";
+import wav from "wav";
 
 import { IConsole } from "../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../core/interfaces/Events.js";
-import wav from "wav";
-import { Silence } from "../../../core/Silence.js";
 import { VoiceRecorder } from "./VoiceRecorder.js";
+import { SpeechRound } from "../../../core/SpeechRound.js";
 
 export class AudioWorker {
   private isRecording = false;
-  private silence: Silence = new Silence();
-
   private cardName = "seeed-2mic-voicecard";
 
   private outputFile = "./output.mp3"; // The path for the output file
@@ -33,6 +31,7 @@ export class AudioWorker {
 
   private porcupine: Porcupine;
   private recordRejector;
+  private speechRound: SpeechRound;
 
   constructor(
     private console: IConsole,
@@ -65,7 +64,6 @@ export class AudioWorker {
         },
         () => {
           // console.debug("Voice ended");
-          this.silence.setStarted();
         }
       );
     } catch (err) {
@@ -125,7 +123,7 @@ export class AudioWorker {
   }
 
   private resolveOutput(resolveCallback) {
-    const file = this.silence.voiceInSessionDetected ? this.outputFile : null;
+    const file = this.speechRound.speechDetected ? this.outputFile : null;
 
     this.eventBus.trigger("voiceRecordingFinished");
     resolveCallback(file);
@@ -133,7 +131,6 @@ export class AudioWorker {
 
   private setRecordingStarted() {
     this.isRecording = true;
-    this.silence.reset();
     this.eventBus.trigger("voiceInputStarted");
   }
 
@@ -154,7 +151,6 @@ export class AudioWorker {
 
     this.recorder.stop();
     this.ffmpeg.stdin.end();
-
     this.console.debug("Finilizing session... done");
   }
 
@@ -174,17 +170,15 @@ export class AudioWorker {
     //   `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
     // );
 
-    // TODO: handle case when file is too small and http 400 is returned: don't process if speech duration is < X sec
-
     try {
       if (!this.isRecording) {
         this.listenToWakeWord(audio);
       } else if (voiceDetected) {
         this.handleVoice(audio, probability);
-      } else if (this.silence.isTimedOut()) {
+      } else if (this.speechRound.isSilenceTimedOut) {
         this.handleSilenceTimeout();
       } else {
-        this.silence.setOrContinue();
+        this.speechRound.silence();
       }
     } catch (error) {
       this.recordRejector(error);
@@ -204,8 +198,9 @@ export class AudioWorker {
     }
   }
 
-  private handleVoice(audio, probability) {
-    this.silence.setVoiceDetected();
+  private handleVoice(audio: Int16Array, probability) {
+    this.speechRound.speaking(audio);
+
     // Streaming audio to FFmpeg
     this.console.debug(`Streaming audio with probability: ${probability}`);
     const buffer = Buffer.from(
@@ -244,16 +239,21 @@ export class AudioWorker {
 
   private handleSilenceTimeout() {
     this.console.debug(
-      `Silence ${this.silence.timeout / 1000}s timed out. Stopping recording`
+      `Silence ${
+        this.speechRound.silenceTimeout / 1000
+      }s timed out. Stopping recording`
     );
     this.eventBus.trigger("voiceInputFinished");
 
     // If no input detected - restart listening
-    if (this.silence.voiceInSessionDetected) {
+    this.console.debug(
+      `Voice of length ${this.speechRound.speechLengthMs}ms detected`
+    );
+    if (this.speechRound.speechDetected) {
       this.finilizeSession();
     } else {
-      this.isRecording = false;
-      this.silence.reset();
+      this.console.debug("Restarting recording...");
+      this.reset();
     }
   }
 
@@ -261,7 +261,7 @@ export class AudioWorker {
     this.cleanupAllFiles();
     this.isRecording = false;
     this.standbyMode = false;
-    this.silence.reset();
+    this.speechRound = SpeechRound.new();
   }
 
   public recordInput(listenOnStart: boolean): Promise<string> {

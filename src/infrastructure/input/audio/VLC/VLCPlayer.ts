@@ -1,7 +1,7 @@
 import * as VLC from "vlc-client";
-import { spawn, ChildProcess } from "child_process";
+import { spawn, ChildProcess, exec } from "child_process";
 import { IConsole } from "../../../../core/interfaces/IConsole";
-import { VlcStatus } from "vlc-client/dist/Types";
+import ps from "ps-node";
 
 export class VLCPlayer {
   private vlc: VLC.Client;
@@ -17,13 +17,18 @@ export class VLCPlayer {
       port: 8080,
       password: "1234",
     });
+  }
 
-    this.init().catch((error) => {
-      console.errorStr("Failed to initialize VLCPlayer:", error);
-    });
+  public async init(): Promise<void> {
+    await this.startVLCProcess();
   }
 
   private async startVLCProcess(): Promise<void> {
+    const existingPid = await this.findVLCProcess();
+    if (existingPid) {
+      this.killOldVLC(existingPid);
+    }
+
     this.vlcProcess = spawn("vlc", [
       "--intf",
       "dummy",
@@ -47,10 +52,27 @@ export class VLCPlayer {
 
     this.vlcProcess.on("exit", (code, signal) => {
       console.log(`VLC process exited with code ${code} and signal ${signal}`);
-      this.cleanup();
     });
-
     await this.waitForVLCReady();
+  }
+
+  private async findVLCProcess(): Promise<number | null> {
+    return new Promise<number | null>((resolve, reject) => {
+      ps.lookup({ command: "vlc" }, (err, resultList) => {
+        if (err) {
+          this.console.errorStr("Error checking for VLC process:", err);
+          resolve(null); // Handle errors gracefully
+        } else if (resultList.length > 0) {
+          this.console.debug(
+            `Found vlc process with PID: ${resultList[0].pid}`
+          );
+          resolve(resultList[0].pid); // Return the PID of the first matching VLC process
+        } else {
+          this.console.debug("No VLC process found");
+          resolve(null); // No VLC process found
+        }
+      });
+    });
   }
 
   private async waitForVLCReady(): Promise<void> {
@@ -75,7 +97,8 @@ export class VLCPlayer {
     throw new Error("Timeout waiting for VLC to be ready");
   }
 
-  private onStopped(): void {
+  private onAudioStopped(): void {
+    this.stopCheckingStatus();
     this.resolver();
   }
 
@@ -85,7 +108,7 @@ export class VLCPlayer {
         const status = await this.vlc.status();
         if (this.state && status.state !== this.state) {
           if (status.state === "stopped") {
-            this.onStopped();
+            this.onAudioStopped();
           }
         }
         // console.debug("VLC status:", status.state);
@@ -97,11 +120,35 @@ export class VLCPlayer {
     }, 200);
   }
 
-  public async init(): Promise<void> {
-    await this.startVLCProcess();
+  public killOldVLC(existingPid: number): void {
+    this.console.info(`Killing existing VLC process with PID ${existingPid}`);
+    exec(`kill ${existingPid}`, (err) => {
+      if (err) {
+        this.console.errorStr("Error killing old VLC process:", err);
+      }
+    });
+  }
+
+  public async stopCheckingStatus(): Promise<void> {
+    if (this.statusChecker) {
+      clearInterval(this.statusChecker);
+      this.statusChecker = null;
+    }
+  }
+
+  public async playUrl(url: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.resolver = resolve;
+      this.rejector = reject;
+
+      return this.vlc.playFile(url).then(() => {
+        this.subscribeToVLCStatus();
+      });
+    });
   }
 
   public cleanup(): void {
+    this.console.info("Cleaning up VLC player");
     if (this.vlcProcess) {
       this.vlcProcess.kill();
       this.vlcProcess = null;
@@ -110,15 +157,5 @@ export class VLCPlayer {
       clearInterval(this.statusChecker);
       this.statusChecker = null;
     }
-  }
-
-  public playUrl(url: string): Promise<void> {
-    this.subscribeToVLCStatus();
-
-    return new Promise((resolve, reject) => {
-      this.resolver = resolve;
-      this.rejector = reject;
-      this.vlc.playFile(url);
-    });
   }
 }
