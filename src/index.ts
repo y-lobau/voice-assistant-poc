@@ -179,10 +179,7 @@ try {
   await vlcPlayer.init();
 
   async function run() {
-    console.log("Playing audio 1");
-    await vlcPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
-    console.log("Playing audio...done");
+    // await vlcPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
     return voiceInput.input({ immediateReplyPossible: true });
   }
 
