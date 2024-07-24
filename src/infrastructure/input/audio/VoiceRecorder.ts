@@ -2,19 +2,17 @@ import { IConsole } from "../../../core/interfaces/IConsole";
 import { PvRecorder } from "@picovoice/pvrecorder-node";
 import { execSync } from "child_process";
 import EventEmitter from "events";
-import vad from "@ricky0123/vad-node";
-import { RealTimeVad } from "./RealTimeVad.js";
+import vad, { FrameProcessor } from "@ricky0123/vad-node";
 
 export class VoiceRecorder extends EventEmitter {
-  private vadInstance: vad.NonRealTimeVAD;
+  private vadInstance: vad.NonRealTimeVAD | null;
   private recorder: PvRecorder;
-  private vad: RealTimeVad;
+  private vadProbabilityThreshold = 0.7;
 
   constructor(
     private console: IConsole,
     private frameLength: number,
-    private cardName: string,
-    private sampleRate: number = 16000
+    private cardName: string
   ) {
     super();
     const deviceIndex = this.getCaptureDeviceIndexByName(this.cardName);
@@ -60,19 +58,14 @@ export class VoiceRecorder extends EventEmitter {
     for (let i = 0; i < audio.length; i++)
       floatArray[i] = audio[i] / (audio[i] >= 0 ? 32767 : 32768);
 
-    return await this.vad.processAudio(floatArray);
+    const probs = await (
+      this.vadInstance.frameProcessor as FrameProcessor
+    ).modelProcessFunc(floatArray);
+
+    return probs.isSpeech >= this.vadProbabilityThreshold;
   }
 
   public async init() {
-    this.vad = await RealTimeVad.new({
-      minBufferDuration: 0.5,
-      maxBufferDuration: 0.5,
-      silenceThreshold: 0.01,
-    });
-    this.vad.on("data", ({ audio, start, end }) => {
-      this.console.debug(`VAD: ${start}, ${end}`);
-    });
-
     try {
       this.vadInstance = await vad.NonRealTimeVAD.new();
     } catch (err) {

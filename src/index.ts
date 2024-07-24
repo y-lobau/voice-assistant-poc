@@ -24,9 +24,9 @@ import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 
-import { AudioWorker } from "./infrastructure/input/audio/AudioWorker.js";
 import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
 import { IVisualFeedback } from "./core/interfaces/IVisualFeedback.js";
+import { VoiceRecorder } from "./infrastructure/input/audio/VoiceRecorder.js";
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
 dotenv.config();
@@ -59,7 +59,7 @@ const profiles = {
   "voice-dev": {
     input: "VoiceInput",
     output: "VoiceOutput",
-    visualization: "ConsoleVisualization",
+    visualization: "NoVisualization",
   },
   "console-voice": {
     input: "ConsoleInput",
@@ -100,7 +100,7 @@ function cleanup(code) {
 
   if (skillBox) skillBox.cleanup();
   if (voiceInput) voiceInput.cleanup();
-  if (vlcPlayer) vlcPlayer.cleanup();
+  // if (vlcPlayer) vlcPlayer.cleanup();
 
   console.log("Cleaning up...done");
   process.exit();
@@ -181,8 +181,8 @@ try {
     process.exit(1); // Exit with a failure code
   });
 
-  vlcPlayer = new VLCPlayer(consoleOutput);
-  await vlcPlayer.init();
+  // vlcPlayer = new VLCPlayer(consoleOutput);
+  // await vlcPlayer.init();
 
   await runApp(conversation, visualization);
 } catch (e) {

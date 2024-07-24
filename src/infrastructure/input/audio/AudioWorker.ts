@@ -146,7 +146,7 @@ export class AudioWorker {
   }
 
   private handleAudioData = async ({ speaking, audio }) => {
-    this.console.debug(`speaking: ${speaking}`);
+    // this.console.debug(`speaking: ${speaking}`);
 
     try {
       if (!this.isRecording) {
