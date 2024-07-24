@@ -2,12 +2,12 @@ import { spawn } from "child_process";
 import fs from "fs";
 import wav from "wav";
 
-import { IConsole } from "../../../core/interfaces/IConsole.js";
+import { IConsole } from "../../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { Omnibus } from "@hypersphere/omnibus";
-import { Events } from "../../../core/interfaces/Events.js";
-import { SpeechRound } from "../../../core/SpeechRound.js";
-import { VoiceRecorder } from "./VoiceRecorder.js";
+import { Events } from "../../../../core/interfaces/Events.js";
+import { SpeechRound } from "../../../../core/SpeechRound.js";
+import { VoiceRecorder } from "../VoiceRecorder.js";
 
 export class AudioWorker {
   private isRecording = false;

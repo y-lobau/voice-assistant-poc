@@ -3,7 +3,7 @@ import { IConsole } from "../../core/interfaces/IConsole.js";
 import { IAI } from "../../core/interfaces/IAI.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../core/interfaces/Events.js";
-import { AudioWorker } from "./audio/AudioWorker.js";
+import { AudioWorker } from "./audio/picovoice/AudioWorker.js";
 
 export class VoiceInput implements IInput {
   private worker: AudioWorker;
