@@ -22,8 +22,7 @@
     "clean": "rm -rf dist",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
-    "copy-assets": "copyfiles -u 1 assets/** dist/assets",
-    "postinstall": "./install-package.sh"
+    "copy-assets": "copyfiles -u 1 assets/** dist/assets"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",
@@ -43,6 +42,8 @@
   "dependencies": {
     "@hypersphere/omnibus": "^0.1.6",
     "@picovoice/porcupine-node": "^3.0.2",
+    "@picovoice/pvrecorder-node": "^1.2.3",
+    "@ricky0123/vad-node": "^0.0.3",
     "blinkt-kit": "^2.2.1",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
@@ -50,7 +51,7 @@
     "he": "^1.2.0",
     "node-record-lpcm16": "^1.0.1",
     "onoff": "^6.0.3",
-    "openai": "^4.29.1",
+    "openai": "4.29.1",
     "ora": "^8.0.1",
     "prism-media": "^1.3.5",
     "ps-node": "^0.1.6",

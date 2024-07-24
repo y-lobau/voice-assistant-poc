@@ -65,7 +65,7 @@
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "sourceMaps": true,
       "console": "integratedTerminal",
-      "args": ["--profile=voice"]
+      "args": ["--profile=voice-dev"]
     },
     {
       "type": "node",

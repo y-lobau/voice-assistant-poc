@@ -3,6 +3,10 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { KnizhnyVozSkill } from "./core/skills/KnizhnyVozSkill.js";
+import { TimeSkill } from "./core/skills/TimeSkill.js";
+import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
+import { BaradzedSkill } from "./core/skills/Baradzed.js";
+
 import { ConsoleInput } from "./infrastructure/input/ConsoleInput.js";
 import { ConsoleOutput } from "./infrastructure/output/ConsoleOutput.js";
 import { SkillBox } from "./core/skills/SkillBox.js";
@@ -11,7 +15,6 @@ import { OpenAIService } from "./infrastructure/openAI/OpenAIService.js";
 import VoiceOutput from "./infrastructure/output/VoiceOutput.js";
 import { VoiceInput } from "./infrastructure/input/VoiceInput.js";
 import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisualization.js";
-import { TimeSkill } from "./core/skills/TimeSkill.js";
 import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.js";
 import { AudioPlayer } from "./infrastructure/output/AudioPlayer.js";
 import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog.js";
@@ -19,10 +22,8 @@ import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
-import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
-import { BaradzedSkill } from "./core/skills/Baradzed.js";
-import { VoiceRecorder } from "./infrastructure/input/audio/VoiceRecorder.js";
+
 import { AudioWorker } from "./infrastructure/input/audio/AudioWorker.js";
 import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
 import { IVisualFeedback } from "./core/interfaces/IVisualFeedback.js";
@@ -54,6 +55,11 @@ const profiles = {
     input: "VoiceInput",
     output: "VoiceOutput",
     visualization: "DeviceVisualization",
+  },
+  "voice-dev": {
+    input: "VoiceInput",
+    output: "VoiceOutput",
+    visualization: "ConsoleVisualization",
   },
   "console-voice": {
     input: "ConsoleInput",
@@ -138,7 +144,7 @@ try {
     consoleOutput
   );
 
-  const assistantDialog = new AssistantDialog(consoleOutput, aiService);
+  // const assistantDialog = new AssistantDialog(consoleOutput, aiService);
   const input = componentFactory[selectedProfile.input]();
   const output = componentFactory[selectedProfile.output]();
 
@@ -178,15 +184,7 @@ try {
   vlcPlayer = new VLCPlayer(consoleOutput);
   await vlcPlayer.init();
 
-  async function run() {
-    // await vlcPlayer.playUrl("https://download.samplelib.com/mp3/sample-3s.mp3");
-    return voiceInput.input({ immediateReplyPossible: true });
-  }
-
-  // await runApp(conversation, visualization);
-
-  await run();
-  await run();
+  await runApp(conversation, visualization);
 } catch (e) {
   console.error(e);
   cleanup(0);

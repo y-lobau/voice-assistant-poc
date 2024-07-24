@@ -18,7 +18,11 @@ import {
 import {
   Message,
   TextContentBlock,
-} from "openai/resources/beta/threads/messages.js";
+} from "openai/resources/beta/threads/messages/messages.js";
+// import {
+//   Message,
+//   TextContentBlock,
+// } from "openai/resources/beta/threads/messages.js";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();

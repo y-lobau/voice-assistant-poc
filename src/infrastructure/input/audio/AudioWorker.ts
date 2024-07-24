@@ -6,8 +6,8 @@ import { IConsole } from "../../../core/interfaces/IConsole.js";
 import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../core/interfaces/Events.js";
-import { VoiceRecorder } from "./VoiceRecorder.js";
 import { SpeechRound } from "../../../core/SpeechRound.js";
+import { VoiceRecorder } from "./VoiceRecorder.js";
 
 export class AudioWorker {
   private isRecording = false;
@@ -18,11 +18,6 @@ export class AudioWorker {
   private recorder: VoiceRecorder;
   private speechProbabilityThreshold = 0.5;
 
-  // How many frames of silence to wait before subsequent voice chunk is finalized.
-  // This is used to prevent cutting off the last part of the voice chunk.
-  // The value should be at least 1, because the last frame of the voice chunk is always silent.
-  // I tested it and with 3 it seems to work fine.
-  private framesOfSilence = 3;
   private standbyMode = false;
 
   // Is used for debugging purposes to check what is being recorded
@@ -52,22 +47,18 @@ export class AudioWorker {
     }
   }
 
-  private initVoiceRecorder() {
+  private async initVoiceRecorder() {
     try {
       this.recorder = new VoiceRecorder(
         this.console,
         this.porcupine.frameLength,
-        this.cardName,
-        this.framesOfSilence,
-        (data) => {
-          this.handleAudioData(data);
-        },
-        () => {
-          // console.debug("Voice ended");
-        }
+        this.cardName
       );
+      await this.recorder.init();
+      this.recorder.on("audio", this.handleAudioData);
     } catch (err) {
       this.console.errorStr(`Error creating recorder: ${err}`);
+      throw err;
     }
   }
 
@@ -154,31 +145,18 @@ export class AudioWorker {
     this.console.debug("Finilizing session... done");
   }
 
-  private handleAudioData = async ({
-    speaking,
-    speech,
-    probability,
-    audio,
-  }) => {
-    // Maybe we don't need to check the 'probability'. It is used to optimize the output size (excluding non-speech parts).
-    // It is not yet clear how do these 3 parts (speaking, speech, probability) correlate.
-    // 'probability' may negatively influence the output by excluding some meaningful speech parts, let's test it.
-    const voiceDetected =
-      speaking && speech && probability >= this.speechProbabilityThreshold;
-
-    // this.console.debug(
-    //   `speaking: ${speaking}, speech: ${speech}, probability: ${probability}`
-    // );
+  private handleAudioData = async ({ speaking, audio }) => {
+    this.console.debug(`speaking: ${speaking}`);
 
     try {
       if (!this.isRecording) {
         this.listenToWakeWord(audio);
-      } else if (voiceDetected) {
-        this.handleVoice(audio, probability);
-      } else if (this.speechRound.isSilenceTimedOut) {
-        this.handleSilenceTimeout();
-      } else {
+      } else if (speaking) {
+        this.handleVoice(audio);
+      } else if (!this.speechRound.isSilenceTimedOut) {
         this.speechRound.silence();
+      } else {
+        this.handleSilenceTimeout();
       }
     } catch (error) {
       this.recordRejector(error);
@@ -198,11 +176,11 @@ export class AudioWorker {
     }
   }
 
-  private handleVoice(audio: Int16Array, probability) {
+  private handleVoice(audio: Int16Array) {
     this.speechRound.speaking(audio);
 
     // Streaming audio to FFmpeg
-    this.console.debug(`Streaming audio with probability: ${probability}`);
+    this.console.debug(`Streaming voice to FFmpeg...`);
     const buffer = Buffer.from(
       audio.buffer,
       audio.byteOffset,
@@ -264,7 +242,7 @@ export class AudioWorker {
     this.speechRound = SpeechRound.new();
   }
 
-  public recordInput(listenOnStart: boolean): Promise<string> {
+  public async recordInput(listenOnStart: boolean): Promise<string> {
     this.reset();
 
     // Recording works in two phases: first, without hotword detection, then with it, if no input detected
@@ -275,7 +253,7 @@ export class AudioWorker {
       this.setRecordingStarted();
     }
 
-    this.initVoiceRecorder();
+    await this.initVoiceRecorder();
 
     return new Promise<string>(async (resolve, reject) => {
       this.initFFmpeg(
@@ -287,7 +265,7 @@ export class AudioWorker {
       this.recordRejector = reject;
 
       this.console.debug("recorder.start()");
-      this.recorder.start();
+      this.recorder.start(reject);
       this.console.debug("recorder.start()... done");
     });
   }
