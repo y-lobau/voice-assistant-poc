@@ -3,7 +3,7 @@ import fs from "fs";
 import { PvRecorder } from "@picovoice/pvrecorder-node";
 
 import { IConsole } from "../../../../core/interfaces/IConsole.js";
-import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
+import { Porcupine, BuiltInKeyword } from "./porcupine/index.js";
 import { VoiceDetector } from "./VoiceDetector.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
@@ -21,6 +21,7 @@ export class AudioWorker {
 
   private porcupine: Porcupine;
   private standbyFlag = false;
+  private connected = false;
 
   constructor(
     private console: IConsole,
@@ -29,7 +30,8 @@ export class AudioWorker {
   ) {
     this.cleanup();
     this.voiceDetector = new VoiceDetector(0.8, apiKey);
-    this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
+
+    this.connectPorcupine();
 
     let index = -1;
     try {
@@ -49,28 +51,8 @@ export class AudioWorker {
   }
 
   private getCaptureDeviceIndexByName(deviceName): number {
-    try {
-      const stdout = execSync("arecord -l").toString();
-      const lines = stdout.split("\n");
-      let deviceIndex: number = null;
-
-      lines.forEach((line) => {
-        if (line.includes(deviceName)) {
-          const match = line.match(/card (\d+):/);
-          if (match && match[1]) {
-            deviceIndex = Number(match[1]);
-          }
-        }
-      });
-
-      if (deviceIndex !== null) {
-        return deviceIndex;
-      } else {
-        throw new Error(`Device "${deviceName}" not found.`);
-      }
-    } catch (err) {
-      throw new Error(`Error executing arecord -l: ${err.message}`);
-    }
+    const devices = PvRecorder.getAvailableDevices();
+    return devices.indexOf(deviceName);
   }
 
   private resolveOutput(resolveCallback) {
@@ -81,6 +63,19 @@ export class AudioWorker {
 
     this.eventBus.trigger("voiceRecordingFinished");
     resolveCallback(file);
+  }
+
+  private connectPorcupine(): void {
+    if (!this.connected) {
+      if (Porcupine.isLoaded()) {
+        this.connected = true;
+      } else {
+        Porcupine.loader.once("ready", () => {
+          this.connected = true;
+          this.porcupine = Porcupine.create([BuiltInKeyword.Bumblebee], [0.5]);
+        });
+      }
+    }
   }
 
   public recordInput(listenOnStart: boolean): Promise<string> {
@@ -126,6 +121,7 @@ export class AudioWorker {
       "libmp3lame",
       "-qscale:a",
       "2",
+      "-hide_banner",
       filePath,
     ]);
 
@@ -158,9 +154,10 @@ export class AudioWorker {
 
   private handleData(data, reject) {
     try {
-      if (!this.isRecording) {
+      if (this.porcupine && !this.isRecording) {
         const keywordIndex = this.porcupine.process(data);
         if (keywordIndex >= 0) {
+          this.console.stopLoading();
           this.console.debug("hot word detected. Recording started.");
           this.eventBus.trigger("voiceInputStarted");
           this.setRecordingStarted();
@@ -169,6 +166,7 @@ export class AudioWorker {
           return;
         }
       } else if (this.voiceDetector.silenceThresholdReached(data)) {
+        this.console.stopLoading();
         this.console.debug("Silence threshold reached. Stopping recording");
 
         // If no input detected - restart listening
@@ -202,6 +200,7 @@ export class AudioWorker {
 
       this.stopped = true;
       this.recorder.stop();
+      this.porcupine.release();
       this.ffmpeg.stdin.end();
     });
   }
