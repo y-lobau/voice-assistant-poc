@@ -23,6 +23,7 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events.js";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
+import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
 
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
