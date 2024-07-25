@@ -17,8 +17,8 @@
   "scripts": {
     "build": "npm run clean && tsc && npm run copy-assets",
     "watch": "tsc --watch",
-    "test": "mocha --opts tests/mocha.opts",
-    "test-watch": "mocha --opts tests/mocha.opts --watch",
+    "test": "mocha",
+    "test-watch": "mocha --watch",
     "clean": "rm -rf dist",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
