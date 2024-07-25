@@ -57,7 +57,10 @@ export class Conversation {
   }
 
   private handleAIResponse(response: AIResponse): Promise<string | null> {
-    this.console.info(`AI response: ${JSON.stringify(response)}`);
+    this.console.info(`-------------- AI response --------------`);
+    this.console.info(JSON.stringify(response, null, 2));
+    this.console.info("-----------------------------------------");
+
     return this.skills.use(response.callbacks).then(() => response.content);
   }
 
