@@ -8,11 +8,6 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 export function PorcupineModule() {
 	var Module = {};
 
-	var arguments_ = [];
-	var thisProgram = "./this.program";
-	var quit_ = function (status, toThrow) {
-		throw toThrow
-	};
 	var scriptDirectory = __dirname + "/";
 	function locateFile(path) {
 		return scriptDirectory + path;
@@ -29,38 +24,21 @@ export function PorcupineModule() {
 			return result;
 		});
 	};
-	if (process.argv.length > 1) {
-		thisProgram = process.argv[1].replace(/\\/g, "/")
-	}
-	arguments_ = process.argv.slice(2);
-	process.on("uncaughtException", function (ex) {
-		if (!(ex instanceof ExitStatus)) {
-			throw ex
-		}
-	});
 	process.on("unhandledRejection", abort);
-	quit_ = function (status) {
+	const quit_ = function (status) {
 		process.exit(status)
 	};
 	Module.inspect = function () {
 		return "[Emscripten Module object]"
 	}
 	
-	var out = Module.print || console.log.bind(console);
-	var err = Module.printErr || console.warn.bind(console);
+	var out = console.log.bind(console);
+	var err = console.warn.bind(console);
 
-	if (Module.arguments) arguments_ = Module.arguments;
-	if (Module.thisProgram) thisProgram = Module.thisProgram;
-	if (Module.quit) quit_ = Module.quit;
-	var noExitRuntime;
-	if (Module.noExitRuntime) noExitRuntime = Module.noExitRuntime;
 	if (typeof WebAssembly !== "object") {
 		err("no native wasm support detected")
 	}
-	var wasmMemory;
-	var wasmTable = new WebAssembly.Table({"initial": 6, "maximum": 6 + 0, "element": "anyfunc"});
 	var ABORT = false;
-	var EXITSTATUS = 0;
 	
 	function assert(condition, text) {
 		if (!condition) {
@@ -218,43 +196,42 @@ export function PorcupineModule() {
 		return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite)
 	}
 	
-	var UTF16Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-16le") : undefined;
-	
 	function writeArrayToMemory(array, buffer) {
 		HEAP8.set(array, buffer)
 	}
 	
-	var WASM_PAGE_SIZE = 65536;
-	var buffer, HEAP8, HEAPU8, HEAP16, HEAPU16, HEAP32, HEAPU32, HEAPF32, HEAPF64;
-	
-	function updateGlobalBufferAndViews(buf) {
-		buffer = buf;
-		Module.HEAP8 = HEAP8 = new Int8Array(buf);
-		Module.HEAP16 = HEAP16 = new Int16Array(buf);
-		Module.HEAP32 = HEAP32 = new Int32Array(buf);
-		Module.HEAPU8 = HEAPU8 = new Uint8Array(buf);
-		Module.HEAPU16 = HEAPU16 = new Uint16Array(buf);
-		Module.HEAPU32 = HEAPU32 = new Uint32Array(buf);
-		Module.HEAPF32 = HEAPF32 = new Float32Array(buf);
-		Module.HEAPF64 = HEAPF64 = new Float64Array(buf)
-	}
+	var INITIAL_TOTAL_MEMORY = 268435456;
+	const WASM_PAGE_SIZE = 65536;
+
+	const wasmMemory = new WebAssembly.Memory({
+		"initial": INITIAL_TOTAL_MEMORY / WASM_PAGE_SIZE,
+		"maximum": INITIAL_TOTAL_MEMORY / WASM_PAGE_SIZE
+	});
+	const wasmTable = new WebAssembly.Table({"initial": 6, "maximum": 6 + 0, "element": "anyfunc"});
+
+	const buffer = wasmMemory.buffer;
+	const HEAP8 = new Int8Array(buffer);
+	const HEAP16 = new Int16Array(buffer);
+	const HEAP32 = new Int32Array(buffer);
+	const HEAPU8 = new Uint8Array(buffer);
+	const HEAPU16 = new Uint16Array(buffer);
+	const HEAPU32 = new Uint32Array(buffer);
+	const HEAPF32 = new Float32Array(buffer);
+	const HEAPF64 = new Float64Array(buffer);
+
+	Module.HEAP8 = HEAP8;
+	Module.HEAP16 = HEAP16;
+	Module.HEAP32 = HEAP32;
+	Module.HEAPU8 = HEAPU8;
+	Module.HEAPU16 = HEAPU16;
+	Module.HEAPU32 = HEAPU32;
+	Module.HEAPF32 = HEAPF32;
+	Module.HEAPF64 = HEAPF64;
 	
 	var DYNAMIC_BASE = 6238656, DYNAMICTOP_PTR = 995616;
-	var INITIAL_TOTAL_MEMORY = Module.TOTAL_MEMORY || 268435456;
-	if (Module.wasmMemory) {
-		wasmMemory = Module.wasmMemory
-	}
-	else {
-		wasmMemory = new WebAssembly.Memory({
-			"initial": INITIAL_TOTAL_MEMORY / WASM_PAGE_SIZE,
-			"maximum": INITIAL_TOTAL_MEMORY / WASM_PAGE_SIZE
-		})
-	}
-	if (wasmMemory) {
-		buffer = wasmMemory.buffer
-	}
+
 	INITIAL_TOTAL_MEMORY = buffer.byteLength;
-	updateGlobalBufferAndViews(buffer);
+
 	HEAP32[DYNAMICTOP_PTR >> 2] = DYNAMIC_BASE;
 	
 	function callRuntimeCallbacks(callbacks) {
@@ -601,19 +578,12 @@ export function PorcupineModule() {
 		return Module
 	};
 	
-	function ExitStatus(status) {
-		this.name = "ExitStatus";
-		this.message = "Program terminated with exit(" + status + ")";
-		this.status = status
-	}
-	
 	dependenciesFulfilled = function runCaller() {
 		if (!calledRun) run();
 		if (!calledRun) dependenciesFulfilled = runCaller
 	};
 	
 	function run(args) {
-		args = args || arguments_;
 		if (runDependencies > 0) {
 			return
 		}
@@ -651,11 +621,7 @@ export function PorcupineModule() {
 			Module.preInit.pop()()
 		}
 	}
-	noExitRuntime = true;
 	run();
-
-	console.info(Module);
-	
 	
 	return Module
 };
