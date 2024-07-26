@@ -52,7 +52,7 @@ export class AudioWorker {
 
   private getCaptureDeviceIndexByName(deviceName): number {
     const devices = PvRecorder.getAvailableDevices();
-    return devices.indexOf(deviceName);
+    return devices.findIndex(device => device.includes(deviceName));
   }
 
   private resolveOutput(resolveCallback) {
