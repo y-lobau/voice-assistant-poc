@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import {
   ChatCompletion,
-  ChatCompletionMessage,
+  ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources";
 import * as fs from "fs";
@@ -22,6 +22,8 @@ import {
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
+  defaultSystemMessage =
+    "Ты-галасавы асісіэнт.Ты адказваеш толькі на беларускай мове.Усе лічбы і нумерацыю у адказах пішы словамі.Калі не разумееш,што ад цябе хочуць-адказвай:'прабацце,я не зусім вас зразумеў.'";
 
   constructor(private model: string, private console: IConsole) {}
 
@@ -54,12 +56,21 @@ export class OpenAIService implements IAI {
   }
 
   public sendCompletions(
-    messages: ChatCompletionMessage[],
+    messages: any[],
     functions: SkillFunction[]
   ): Promise<AIResponse> {
+    const allMessages = messages.concat({
+      role: "system",
+      content: this.defaultSystemMessage,
+    });
+
+    this.console.debug(
+      `Sending messages to model ${this.model}: ${JSON.stringify(messages)}`
+    );
+
     return this.openai.chat.completions
       .create({
-        messages: messages as ChatCompletionMessage[],
+        messages: messages as ChatCompletionMessageParam[],
         model: this.model,
         tools: functions.map(
           this.skillFunctionToDefinition

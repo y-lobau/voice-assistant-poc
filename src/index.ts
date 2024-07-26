@@ -116,11 +116,7 @@ const componentFactory = {
 
 // ButtonHandler.init(eventBus);
 
-const simpleMessageHandler = new SimpleMessageDialog(
-  gpt4Model,
-  aiService,
-  consoleOutput
-);
+const simpleMessageHandler = new SimpleMessageDialog(aiService);
 
 // const assistantDialog = new AssistantDialog(consoleOutput, aiService);
 let cleanedUp = false;
