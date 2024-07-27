@@ -2,29 +2,29 @@ import dotenv from "dotenv";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { KnizhnyVozSkill } from "./core/skills/KnizhnyVozSkill.js";
-import { TimeSkill } from "./core/skills/TimeSkill.js";
-import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill.js";
-import { BaradzedSkill } from "./core/skills/Baradzed.js";
+import { KnizhnyVozSkill } from "./core/skills/KnizhnyVozSkill";
+import { TimeSkill } from "./core/skills/TimeSkill";
+import { PlayTestAudioSkill } from "./core/skills/PlayTestAudioSkill";
+import { BaradzedSkill } from "./core/skills/Baradzed";
 
-import { ConsoleInput } from "./infrastructure/input/ConsoleInput.js";
-import { ConsoleOutput } from "./infrastructure/output/ConsoleOutput.js";
-import { SkillBox } from "./core/skills/SkillBox.js";
-import { Conversation } from "./core/Conversation.js";
-import { OpenAIService } from "./infrastructure/openAI/OpenAIService.js";
-import VoiceOutput from "./infrastructure/output/VoiceOutput.js";
-import { VoiceInput } from "./infrastructure/input/VoiceInput.js";
-import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisualization.js";
-import { NoVisualization } from "./infrastructure/visualisation/NoVisualization.js";
-import { AudioPlayer } from "./infrastructure/output/AudioPlayer.js";
-import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog.js";
-import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog.js";
+import { ConsoleInput } from "./infrastructure/input/ConsoleInput";
+import { ConsoleOutput } from "./infrastructure/output/ConsoleOutput";
+import { SkillBox } from "./core/skills/SkillBox";
+import { Conversation } from "./core/Conversation";
+import { OpenAIService } from "./infrastructure/openAI/OpenAIService";
+import VoiceOutput from "./infrastructure/output/VoiceOutput";
+import { VoiceInput } from "./infrastructure/input/VoiceInput";
+import { ConsoleVisualization } from "./infrastructure/visualisation/ConsoleVisualization";
+import { NoVisualization } from "./infrastructure/visualisation/NoVisualization";
+import { AudioPlayer } from "./infrastructure/output/AudioPlayer";
+import { SimpleMessageDialog } from "./infrastructure/openAI/SimpleMessageDialog";
+import { AssistantDialog } from "./infrastructure/openAI/AssistantDialog";
 import { Omnibus } from "@hypersphere/omnibus";
-import { Events } from "./core/interfaces/Events.js";
-import { BlinktController } from "./infrastructure/visualisation/BlinktController.js";
-import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
+import { Events } from "./core/interfaces/Events";
+import { BlinktController } from "./infrastructure/visualisation/BlinktController";
+import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager";
 
-// import { ButtonHandler } from "./infrastructure/input/button.js";
+// import { ButtonHandler } from "./infrastructure/input/button";
 
 dotenv.config();
 
@@ -86,14 +86,14 @@ function getVisualization(visualizationName) {
 }
 
 // Parse CLI arguments for profile selection
-const argv = yargs(hideBin(process.argv)).option("profile", {
+const { profile } = await yargs(hideBin(process.argv)).option("profile", {
   describe: "Predefined profile for the application mode",
   choices: Object.keys(profiles),
   demandOption: true, // Require profile selection
 }).argv;
 
 // Select profile based on CLI argument
-const selectedProfile = profiles[argv.profile];
+const selectedProfile = profiles[profile];
 
 // Visualization configuration
 const visualization = getVisualization(selectedProfile.visualization);
