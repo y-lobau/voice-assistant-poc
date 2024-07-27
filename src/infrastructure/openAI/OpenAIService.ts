@@ -5,20 +5,20 @@ import {
   ChatCompletionTool,
 } from "openai/resources";
 import * as fs from "fs";
-import { AIResponse } from "../../core/models/AIResponse.js";
-import { Callback } from "../../core/models/Callback.js";
-import { IAI } from "../../core/interfaces/IAI.js";
-import { SkillFunction } from "../../core/models/SkillFunction.js";
-import { IConsole } from "../../core/interfaces/IConsole.js";
-import { Assistant } from "openai/resources/beta/assistants/assistants.js";
+import { AIResponse } from "../../core/models/AIResponse";
+import { Callback } from "../../core/models/Callback";
+import { IAI } from "../../core/interfaces/IAI";
+import { SkillFunction } from "../../core/models/SkillFunction";
+import { IConsole } from "../../core/interfaces/IConsole";
+import { Assistant } from "openai/resources/beta/assistants/assistants";
 import {
   Message,
   TextContentBlock,
-} from "openai/resources/beta/threads/messages/messages.js";
+} from "openai/resources/beta/threads/messages/messages";
 import {
   FunctionToolCall,
   RunStep,
-} from "openai/resources/beta/threads/runs/steps.js";
+} from "openai/resources/beta/threads/runs/steps";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
