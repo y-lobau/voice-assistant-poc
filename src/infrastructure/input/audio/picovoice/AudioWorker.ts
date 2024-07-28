@@ -3,7 +3,7 @@ import fs from "fs";
 import wav from "wav";
 
 import { IConsole } from "../../../../core/interfaces/IConsole.js";
-import { Porcupine, BuiltinKeyword } from "@picovoice/porcupine-node";
+import { Porcupine, BuiltInKeyword } from "./porcupine/index.js";
 import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "../../../../core/interfaces/Events.js";
 import { SpeechRound } from "../../../../core/SpeechRound.js";
@@ -16,7 +16,6 @@ export class AudioWorker {
   private outputFile = "./output.mp3"; // The path for the output file
   private ffmpeg;
   private recorder: VoiceRecorder;
-  private speechProbabilityThreshold = 0.5;
 
   private standbyMode = false;
 
@@ -30,13 +29,10 @@ export class AudioWorker {
 
   constructor(
     private console: IConsole,
-    apiKey: string,
     private eventBus: Omnibus<Events>,
     private debugWavFile: boolean = false
   ) {
     this.console.debug("Initializing AudioWorker");
-
-    this.porcupine = new Porcupine(apiKey, [BuiltinKeyword.BLUEBERRY], [0.5]);
 
     if (this.debugWavFile) {
       this.debugWavFile = new wav.FileWriter(this.debugFilename, {
@@ -45,6 +41,10 @@ export class AudioWorker {
         bitDepth: 16,
       });
     }
+  }
+
+  public init() {
+    return Promise.all([this.initVoiceRecorder(), this.initPorcupine()]);
   }
 
   private async initVoiceRecorder() {
@@ -58,11 +58,20 @@ export class AudioWorker {
       this.recorder.on("audio", this.handleAudioData);
     } catch (err) {
       this.console.errorStr(`Error creating recorder: ${err}`);
-      throw err;
     }
   }
 
-  private initFFmpeg(
+  private initPorcupine(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      Porcupine.loader.once("ready", () => {
+        this.console.debug("Porcupine loaded");
+        this.porcupine = Porcupine.create([BuiltInKeyword.Bumblebee], [0.5]);
+        resolve();
+      });
+    });
+  }
+
+  private setupFFmpeg(
     filePath: string,
     onComplete: () => void,
     onError: (err) => void
@@ -82,6 +91,7 @@ export class AudioWorker {
       "libmp3lame",
       "-qscale:a",
       "2",
+      "-hide_banner",
       filePath,
     ]);
 
@@ -256,7 +266,7 @@ export class AudioWorker {
     await this.initVoiceRecorder();
 
     return new Promise<string>(async (resolve, reject) => {
-      this.initFFmpeg(
+      this.setupFFmpeg(
         this.outputFile,
         () => this.resolveOutput(resolve),
         reject

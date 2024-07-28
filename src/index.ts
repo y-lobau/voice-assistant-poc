@@ -25,6 +25,7 @@ import { BlinktController } from "./infrastructure/visualisation/BlinktControlle
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager.js";
 import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
 import { IVisualFeedback } from "./core/interfaces/IVisualFeedback.js";
+import { AudioWorker } from "./infrastructure/input/audio/picovoice/AudioWorker.js";
 
 // import { ButtonHandler } from "./infrastructure/input/button.js";
 
@@ -120,16 +121,14 @@ try {
   const visualization = getVisualization(selectedProfile.visualization);
   visualization.initializing();
 
+  const audioWorker = new AudioWorker(consoleOutput, eventBus);
+  await audioWorker.init();
+
   // Input and Output configuration using a factory approach
   const componentFactory = {
     ConsoleInput: () => new ConsoleInput(),
     VoiceInput: () =>
-      (voiceInput = new VoiceInput(
-        aiService,
-        consoleOutput,
-        process.env.PICOVOICE_API_KEY,
-        eventBus
-      )),
+      (voiceInput = new VoiceInput(aiService, consoleOutput, audioWorker)),
     ConsoleOutput: () => consoleOutput,
     VoiceOutput: () =>
       new VoiceOutput(aiService, consoleOutput, audioPlayer, eventBus),

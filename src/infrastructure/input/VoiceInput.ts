@@ -1,21 +1,14 @@
 import { IInput } from "../../core/interfaces/IInput.js";
 import { IConsole } from "../../core/interfaces/IConsole.js";
 import { IAI } from "../../core/interfaces/IAI.js";
-import { Omnibus } from "@hypersphere/omnibus";
-import { Events } from "../../core/interfaces/Events.js";
 import { AudioWorker } from "./audio/picovoice/AudioWorker.js";
 
 export class VoiceInput implements IInput {
-  private worker: AudioWorker;
-
   constructor(
     private ai: IAI,
     private console: IConsole,
-    private picoApiKey: string,
-    private eventBus: Omnibus<Events>
-  ) {
-    this.worker = new AudioWorker(this.console, this.picoApiKey, this.eventBus);
-  }
+    private worker: AudioWorker
+  ) {}
 
   input(options: any): Promise<string> {
     return new Promise((resolve, reject) => {

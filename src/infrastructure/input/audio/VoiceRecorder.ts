@@ -26,31 +26,8 @@ export class VoiceRecorder extends EventEmitter {
   }
 
   private getCaptureDeviceIndexByName(deviceName): number {
-    try {
-      const stdout = execSync("arecord -l").toString();
-      const lines = stdout.split("\n");
-      let deviceIndex: number = null;
-
-      lines.forEach((line) => {
-        if (line.includes(deviceName)) {
-          const match = line.match(/card (\d+):/);
-          if (match && match[1]) {
-            deviceIndex = Number(match[1]);
-          }
-        }
-      });
-
-      if (deviceIndex !== null) {
-        return deviceIndex;
-      } else {
-        throw new Error(`Device "${deviceName}" not found.`);
-      }
-    } catch (err) {
-      this.console.errorStr(
-        `Error executing arecord -l: ${err.message}. Using default device index -1.`
-      );
-      return -1;
-    }
+    const devices = PvRecorder.getAvailableDevices();
+    return devices.findIndex((device) => device.includes(deviceName));
   }
 
   private async voiceDetected(audio: Int16Array): Promise<boolean> {

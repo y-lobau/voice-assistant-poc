@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "@hypersphere/omnibus": "^0.1.6",
-    "@picovoice/porcupine-node": "^3.0.2",
     "@picovoice/pvrecorder-node": "^1.2.3",
     "@ricky0123/vad-node": "^0.0.3",
     "blinkt-kit": "^2.2.1",
