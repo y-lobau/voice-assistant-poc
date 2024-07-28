@@ -28,8 +28,7 @@ import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager"
 
 dotenv.config();
 
-const gpt4Model = "gpt-4o";
-const gpt3Model = "gpt-3.5-turbo-1106";
+const gpt4Model = "gpt-4o-mini";
 
 const consoleOutput = new ConsoleOutput();
 const aiService = new OpenAIService(gpt4Model, consoleOutput);

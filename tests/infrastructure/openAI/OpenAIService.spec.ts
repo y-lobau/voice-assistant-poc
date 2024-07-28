@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { OpenAIService } from "./OpenAIService";
-import { ConsoleOutput } from "../output/ConsoleOutput";
+import { OpenAIService } from "../../../src/infrastructure/openAI/OpenAIService";
+import { ConsoleOutput } from "../../../src/infrastructure/output/ConsoleOutput";
 
 describe("sendCompletions()", function () {
   const model = "gpt-4o-mini";
