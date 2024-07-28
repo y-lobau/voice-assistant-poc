@@ -17,23 +17,25 @@
   "scripts": {
     "build": "npm run clean && tsc && npm run copy-assets",
     "watch": "tsc --watch",
-    "test": "mocha",
-    "test-watch": "mocha --watch",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test-watch": "jest --verbose --coverage --watch",
     "clean": "rm -rf dist",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "lint-fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
     "copy-assets": "copyfiles -u 1 assets/** dist/assets"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.12",
-    "@types/mocha": "^2.2.48",
+    "@types/chai": "^4.3.16",
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.11.28",
     "chai": "^4.4.1",
     "copyfiles": "^2.4.1",
-    "mocha": "^10.3.0",
+    "dotenv": "^16.4.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.3",
     "ts-node": "^3.3.0",
     "tslint": "^5.20.1",
-    "typescript": "^5.4.2"
+    "typescript": "^5.5.4"
   },
   "engines": {
     "node": ">=6.10"
@@ -42,9 +44,10 @@
     "@hypersphere/omnibus": "^0.1.6",
     "@picovoice/cobra-node": "^2.0.0",
     "@picovoice/pvrecorder-node": "^1.2.2",
+    "@swc/core": "^1.7.2",
+    "@swc/jest": "^0.2.36",
     "blinkt-kit": "^2.2.1",
     "chalk": "^5.3.0",
-    "dotenv": "^16.4.5",
     "he": "^1.2.0",
     "node-record-lpcm16": "^1.0.1",
     "onoff": "^6.0.3",

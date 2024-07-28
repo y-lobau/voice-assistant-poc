@@ -1,27 +1,29 @@
 import OpenAI from "openai";
 import {
   ChatCompletion,
-  ChatCompletionMessage,
+  ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources";
 import * as fs from "fs";
-import { AIResponse } from "../../core/models/AIResponse.js";
-import { Callback } from "../../core/models/Callback.js";
-import { IAI } from "../../core/interfaces/IAI.js";
-import { SkillFunction } from "../../core/models/SkillFunction.js";
-import { IConsole } from "../../core/interfaces/IConsole.js";
-import { Assistant } from "openai/resources/beta/assistants/assistants.js";
+import { AIResponse } from "../../core/models/AIResponse";
+import { Callback } from "../../core/models/Callback";
+import { IAI } from "../../core/interfaces/IAI";
+import { SkillFunction } from "../../core/models/SkillFunction";
+import { IConsole } from "../../core/interfaces/IConsole";
+import { Assistant } from "openai/resources/beta/assistants/assistants";
 import {
   Message,
   TextContentBlock,
-} from "openai/resources/beta/threads/messages/messages.js";
+} from "openai/resources/beta/threads/messages/messages";
 import {
   FunctionToolCall,
   RunStep,
-} from "openai/resources/beta/threads/runs/steps.js";
+} from "openai/resources/beta/threads/runs/steps";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
+  defaultSystemMessage =
+    "Ты-галасавы асісіэнт.Ты адказваеш толькі на беларускай мове.Усе лічбы і нумерацыю у адказах пішы словамі.Калі не разумееш,што ад цябе хочуць-адказвай:'прабацце,я не зусім вас зразумеў.'";
 
   constructor(private model: string, private console: IConsole) {}
 
@@ -54,17 +56,30 @@ export class OpenAIService implements IAI {
   }
 
   public sendCompletions(
-    messages: ChatCompletionMessage[],
+    messages: any[],
     functions: SkillFunction[]
   ): Promise<AIResponse> {
+    const allMessages = messages.concat({
+      role: "system",
+      content: this.defaultSystemMessage,
+    });
+
+    this.console.debug(
+      `Sending messages to model ${this.model}: ${JSON.stringify(allMessages)}`
+    );
+
+    const request = {
+      messages: allMessages as ChatCompletionMessageParam[],
+      model: this.model,
+    } as any;
+    if (functions.length > 0) {
+      request.tools = functions.map(
+        this.skillFunctionToDefinition
+      ) as Array<ChatCompletionTool>;
+    }
+
     return this.openai.chat.completions
-      .create({
-        messages: messages as ChatCompletionMessage[],
-        model: this.model,
-        tools: functions.map(
-          this.skillFunctionToDefinition
-        ) as Array<ChatCompletionTool>,
-      })
+      .create(request)
       .then((completion) => this.handleCompletion(completion));
   }
 

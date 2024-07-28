@@ -16,6 +16,11 @@ jobs:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
 
+    environment: CI
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
     strategy:
       matrix:
         node-version: [18.x]
@@ -34,6 +39,11 @@ jobs:
   build-macos:
     name: Build on macOS
     runs-on: macos-latest
+
+    environment: CI
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     strategy:
       matrix:
