@@ -18,6 +18,9 @@ jobs:
 
     environment: CI
 
+    env:
+      SECRET_KEY: ${{ secrets.OPENAI_API_KEY }}
+
     strategy:
       matrix:
         node-version: [18.x]
@@ -38,6 +41,9 @@ jobs:
     runs-on: macos-latest
 
     environment: CI
+
+    env:
+      SECRET_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     strategy:
       matrix:
