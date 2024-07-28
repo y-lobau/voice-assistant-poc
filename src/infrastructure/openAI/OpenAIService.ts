@@ -65,17 +65,21 @@ export class OpenAIService implements IAI {
     });
 
     this.console.debug(
-      `Sending messages to model ${this.model}: ${JSON.stringify(messages)}`
+      `Sending messages to model ${this.model}: ${JSON.stringify(allMessages)}`
     );
 
+    const request = {
+      messages: allMessages as ChatCompletionMessageParam[],
+      model: this.model,
+    } as any;
+    if (functions.length > 0) {
+      request.tools = functions.map(
+        this.skillFunctionToDefinition
+      ) as Array<ChatCompletionTool>;
+    }
+
     return this.openai.chat.completions
-      .create({
-        messages: messages as ChatCompletionMessageParam[],
-        model: this.model,
-        tools: functions.map(
-          this.skillFunctionToDefinition
-        ) as Array<ChatCompletionTool>,
-      })
+      .create(request)
       .then((completion) => this.handleCompletion(completion));
   }
 
