@@ -136,9 +136,7 @@ try {
   // ButtonHandler.init(eventBus);
 
   const simpleMessageHandler = new SimpleMessageDialog(
-    gpt4Model,
-    aiService,
-    consoleOutput
+    aiService
   );
 
   // const assistantDialog = new AssistantDialog(consoleOutput, aiService);
