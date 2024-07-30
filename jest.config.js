@@ -1,7 +1,8 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} **/
+import 'dotenv/config';
+
 export default {
-  testEnvironment: "node",
   transform: {
-    "^.+.tsx?$": ["ts-jest",{}],
+      '^.+\\.(t|j)s?$': '@swc/jest',
   },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
 };
