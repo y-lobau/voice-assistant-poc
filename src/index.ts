@@ -23,6 +23,9 @@ import { Omnibus } from "@hypersphere/omnibus";
 import { Events } from "./core/interfaces/Events";
 import { BlinktController } from "./infrastructure/visualisation/BlinktController";
 import { FeedbackManager } from "./infrastructure/visualisation/FeedbackManager";
+import { VLCPlayer } from "./infrastructure/input/audio/VLC/VLCPlayer.js";
+import { IVisualFeedback } from "./core/interfaces/IVisualFeedback.js";
+import { AudioWorker } from "./infrastructure/input/audio/picovoice/AudioWorker.js";
 
 // import { ButtonHandler } from "./infrastructure/input/button";
 
@@ -34,6 +37,9 @@ const consoleOutput = new ConsoleOutput();
 const aiService = new OpenAIService(gpt4Model, consoleOutput);
 const audioPlayer = new AudioPlayer(consoleOutput);
 let voiceInput: VoiceInput;
+let cleanedUp = false;
+let skillBox: SkillBox;
+let vlcPlayer: VLCPlayer;
 
 const eventBus = new Omnibus<Events>();
 
@@ -52,7 +58,7 @@ const profiles = {
   "voice-dev": {
     input: "VoiceInput",
     output: "VoiceOutput",
-    visualization: "ConsoleVisualization",
+    visualization: "NoVisualization",
   },
   "console-voice": {
     input: "ConsoleInput",
@@ -84,97 +90,109 @@ function getVisualization(visualizationName) {
   }
 }
 
-// Parse CLI arguments for profile selection
-const { profile } = await yargs(hideBin(process.argv)).option("profile", {
-  describe: "Predefined profile for the application mode",
-  choices: Object.keys(profiles),
-  demandOption: true, // Require profile selection
-}).argv;
-
-// Select profile based on CLI argument
-const selectedProfile = profiles[profile];
-
-// Visualization configuration
-const visualization = getVisualization(selectedProfile.visualization);
-visualization.initializing();
-
-// Input and Output configuration using a factory approach
-const componentFactory = {
-  ConsoleInput: () => new ConsoleInput(),
-  VoiceInput: () =>
-    (voiceInput = new VoiceInput(
-      aiService,
-      consoleOutput,
-      process.env.PICOVOICE_API_KEY,
-      eventBus
-    )),
-  ConsoleOutput: () => consoleOutput,
-  VoiceOutput: () =>
-    new VoiceOutput(aiService, consoleOutput, audioPlayer, eventBus),
-};
-
-// ButtonHandler.init(eventBus);
-
-const simpleMessageHandler = new SimpleMessageDialog(aiService);
-
-// const assistantDialog = new AssistantDialog(consoleOutput, aiService);
-let cleanedUp = false;
-const input = componentFactory[selectedProfile.input]();
-const output = componentFactory[selectedProfile.output]();
-
-const skills = [
-  // new KnizhnyVozSkill(audioPlayer),
-  // new TimeSkill(output),
-  // new PlayTestAudioSkill(audioPlayer),
-  new BaradzedSkill(audioPlayer),
-];
-const skillBox = new SkillBox(skills, eventBus);
-FeedbackManager.init(eventBus, visualization);
-
-const conversation = new Conversation(
-  input,
-  output,
-  simpleMessageHandler,
-  new SkillBox(skills, eventBus),
-  consoleOutput,
-  eventBus
-);
-
-process.on("exit", cleanup);
-process.on("SIGINT", cleanup);
-
-// Catch unhandled exceptions
-process.on("uncaughtException", (error) => {
-  console.error("Unhandled Exception:", error);
-  process.exit(1); // Exit with a failure code
-});
-
-// Catch unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exit(1); // Exit with a failure code
-});
-
-// Start the conversation
-try {
-  await conversation.init();
-  visualization.initializing(false);
-  await conversation.start().catch(console.error);
-} catch (e) {
-  console.error(e);
-}
-
 function cleanup(code) {
   if (code > 0) console.error("Exiting with code", code);
+  console.log("Cleaning up...");
 
   if (cleanedUp) return;
   cleanedUp = true;
 
-  console.log("cleaning up");
-  skillBox.cleanup();
+  if (skillBox) skillBox.cleanup();
   if (voiceInput) voiceInput.cleanup();
+  // if (vlcPlayer) vlcPlayer.cleanup();
 
+  console.log("Cleaning up...done");
   process.exit();
+}
+
+try {
+  // Parse CLI arguments for profile selection
+  const { profile } = await await yargs(hideBin(process.argv)).option("profile", {
+    describe: "Predefined profile for the application mode",
+    choices: Object.keys(profiles),
+    demandOption: true, // Require profile selection
+  }).argv;
+
+  // Select profile based on CLI argument
+  const selectedProfile = profiles[profile];
+
+  // Visualization configuration
+  const visualization = getVisualization(selectedProfile.visualization);
+  visualization.initializing();
+
+  const audioWorker = new AudioWorker(consoleOutput, eventBus);
+  await audioWorker.init();
+
+  // Input and Output configuration using a factory approach
+  const componentFactory = {
+    ConsoleInput: () => new ConsoleInput(),
+    VoiceInput: () =>
+      (voiceInput = new VoiceInput(aiService, consoleOutput, audioWorker)),
+    ConsoleOutput: () => consoleOutput,
+    VoiceOutput: () =>
+      new VoiceOutput(aiService, consoleOutput, audioPlayer, eventBus),
+  };
+
+  // ButtonHandler.init(eventBus);
+
+  const simpleMessageHandler = new SimpleMessageDialog(
+    aiService
+  );
+
+  // const assistantDialog = new AssistantDialog(consoleOutput, aiService);
+  let cleanedUp = false;
+  const input = componentFactory[selectedProfile.input]();
+  const output = componentFactory[selectedProfile.output]();
+
+  const skills = [
+    // new KnizhnyVozSkill(audioPlayer),
+    // new TimeSkill(output),
+    // new PlayTestAudioSkill(audioPlayer),
+    new BaradzedSkill(audioPlayer),
+  ];
+  const skillBox = new SkillBox(skills, eventBus);
+  FeedbackManager.init(eventBus, visualization);
+
+  const conversation = new Conversation(
+    input,
+    output,
+    simpleMessageHandler,
+    new SkillBox(skills, eventBus),
+    consoleOutput,
+    eventBus
+  );
+
+  process.on("exit", cleanup);
+  process.on("SIGINT", cleanup);
+
+  // Catch unhandled exceptions
+  process.on("uncaughtException", (error) => {
+    console.error("Unhandled Exception:", error);
+    process.exit(1); // Exit with a failure code
+  });
+
+  // Catch unhandled promise rejections
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    process.exit(1); // Exit with a failure code
+  });
+
+  // vlcPlayer = new VLCPlayer(consoleOutput);
+  // await vlcPlayer.init();
+
+  await runApp(conversation, visualization);
+} catch (e) {
+  console.error(e);
+  cleanup(0);
+}
+
+async function runApp(
+  conversation: Conversation,
+  visualization: IVisualFeedback
+) {
+  await conversation.init();
+  visualization.initializing(false);
+  await conversation.start().catch(console.error);
 }
 
 // await skill.loadAndPopulateAllBooks();

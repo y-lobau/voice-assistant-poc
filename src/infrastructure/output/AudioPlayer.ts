@@ -2,10 +2,15 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { IConsole } from "../../core/interfaces/IConsole";
 
 export class AudioPlayer {
-  constructor(private console: IConsole) {}
   process: ChildProcessWithoutNullStreams;
 
-  private spawnProcess(onPlayFinished, onPlayFailed, args: string[] = ["-"]) {
+  constructor(private console: IConsole) {}
+
+  private spawnProcess(
+    onPlayFinished: () => void,
+    onPlayFailed: (error: Error) => void,
+    args: string[] = ["-"]
+  ) {
     this.process = spawn("mpg123", args);
 
     this.process.stderr.on("data", (data) => {
@@ -27,40 +32,41 @@ export class AudioPlayer {
     });
   }
 
-  private playRawAudio(dataBuffer, resolve, reject) {
+  private playRawAudio(
+    dataBuffer: Buffer,
+    resolve: () => void,
+    reject: (error: Error) => void
+  ) {
     this.spawnProcess(resolve, reject);
     this.process.stdin.write(dataBuffer);
     this.process.stdin.end();
   }
 
-  public play(bytes: Buffer): Promise<Buffer> {
+  public play(bytes: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       const audioData = Buffer.from(bytes);
       this.playRawAudio(audioData, resolve, reject);
     });
   }
 
-  public playUrl(
-    url: string,
-    onFinished: () => void = () => {}
-  ): Promise<void> {
+  public playUrl(url: string): Promise<void> {
     this.stop();
 
     return new Promise((resolve, reject) => {
-      this.spawnProcess(onFinished, reject, [url]);
-      resolve();
+      this.spawnProcess(resolve, reject, [url]);
     });
   }
 
   public togglePause() {
     if (this.process) {
-      // TBD
+      // Implement toggle pause logic if supported by mpg123
     }
   }
 
   public stop() {
     if (this.process) {
       this.process.kill();
+      this.process = null;
     }
   }
 

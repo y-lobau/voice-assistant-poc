@@ -10,15 +10,19 @@ import { Callback } from "../../core/models/Callback";
 import { IAI } from "../../core/interfaces/IAI";
 import { SkillFunction } from "../../core/models/SkillFunction";
 import { IConsole } from "../../core/interfaces/IConsole";
-import { Assistant } from "openai/resources/beta/assistants/assistants";
-import {
-  Message,
-  TextContentBlock,
-} from "openai/resources/beta/threads/messages/messages";
+
 import {
   FunctionToolCall,
   RunStep,
 } from "openai/resources/beta/threads/runs/steps";
+import {
+  Message,
+  TextContentBlock,
+} from "openai/resources/beta/threads/messages/messages";
+// import {
+//   Message,
+//   TextContentBlock,
+// } from "openai/resources/beta/threads/messages";
 
 export class OpenAIService implements IAI {
   openai = new OpenAI();
@@ -46,14 +50,17 @@ export class OpenAIService implements IAI {
       language: "be",
     });
     return transcription.then((res) => {
-      this.console.info("Transcription: " + res.text);
+      this.console.info(
+        `\n-------------- Transcription --------------\n${res.text}` +
+          "\n-----------------------------------------"
+      );
       return res.text;
     });
   }
 
-  public getAssistant(id: string): Promise<Assistant> {
-    return this.openai.beta.assistants.retrieve(id);
-  }
+  // public getAssistant(id: string): Promise<Assistant> {
+  //   return this.openai.beta.assistants.retrieve(id);
+  // }
 
   public sendCompletions(
     messages: any[],

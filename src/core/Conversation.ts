@@ -18,43 +18,42 @@ export class Conversation {
     private mode: "infinite" | "single" = "infinite"
   ) {}
 
-  private runLoop(startListening: boolean = false): Promise<void> {
-    return this.input
-      .input({ immediateReplyPossible: startListening })
-      .then((input: string) => {
-        this.eventBus.trigger("processingInputStarted");
-
-        const skillsMessages = this.skills.serviceMessages();
-
-        return this.dialog
-          .sendMessage(input, {
-            systemMessages: skillsMessages,
-            functions: this.skills.functionDefinitions,
-          })
-          .then((response: AIResponse) => this.handleAIResponse(response))
-          .then((responseText) => {
-            this.eventBus.trigger("processingInputFinished");
-            let immediateReplyPossible = false;
-
-            if (responseText) {
-              immediateReplyPossible = true;
-              return this.output
-                .output(responseText)
-                .then(() => immediateReplyPossible);
-            } else {
-              return Promise.resolve().then(() => immediateReplyPossible);
-            }
-          })
-          .then((immediateReplyPossible) => {
-            if (this.mode === "infinite") {
-              return this.runLoop(immediateReplyPossible);
-            }
-          })
-          .catch((e) => {
-            this.output.error(e);
-            return this.runLoop(true);
-          });
+  private async runLoop(startListening: boolean = false): Promise<void> {
+    try {
+      const input: string = await this.input.input({
+        immediateReplyPossible: startListening,
       });
+
+      if (!input) {
+        this.eventBus.trigger("emptyInputDetected");
+        return this.runLoop(true);
+      }
+
+      this.eventBus.trigger("processingInputStarted");
+      const skillsMessages = this.skills.serviceMessages();
+
+      const response: AIResponse = await this.dialog.sendMessage(input, {
+        systemMessages: skillsMessages,
+        functions: this.skills.functionDefinitions,
+      });
+
+      const responseText = await this.handleAIResponse(response);
+
+      this.eventBus.trigger("processingInputFinished");
+      let immediateReplyPossible = false;
+
+      if (responseText) {
+        immediateReplyPossible = true;
+        await this.output.output(responseText);
+      }
+
+      if (this.mode === "infinite") {
+        return this.runLoop(immediateReplyPossible);
+      }
+    } catch (error) {
+      await this.output.error(error);
+      return this.runLoop(true);
+    }
   }
 
   private handleAIResponse(response: AIResponse): Promise<string | null> {
