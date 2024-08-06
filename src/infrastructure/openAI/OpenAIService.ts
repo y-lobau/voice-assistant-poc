@@ -5,11 +5,11 @@ import {
   ChatCompletionTool,
 } from "openai/resources";
 import * as fs from "fs";
-import { AIResponse } from "../../core/models/AIResponse";
-import { Callback } from "../../core/models/Callback";
-import { IAI } from "../../core/interfaces/IAI";
-import { SkillFunction } from "../../core/models/SkillFunction";
-import { IConsole } from "../../core/interfaces/IConsole";
+import { AIResponse } from "../../core/models/AIResponse.js";
+import { Callback } from "../../core/models/Callback.js";
+import { IAI } from "../../core/interfaces/IAI.js";
+import { SkillFunction } from "../../core/models/SkillFunction.js";
+import { IConsole } from "../../core/interfaces/IConsole.js";
 
 import {
   FunctionToolCall,

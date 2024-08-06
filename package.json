@@ -3,12 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "description": "node-template-project",
-  "license": "MIT",
-  "repository": "",
-  "author": "",
-  "keywords": [
-    ""
-  ],
   "files": [
     "dist"
   ],
@@ -27,7 +21,7 @@
   "devDependencies": {
     "@types/chai": "^4.3.16",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.28",
+    "@types/node": "^20.14.14",
     "chai": "^4.4.1",
     "copyfiles": "^2.4.1",
     "dotenv": "^16.4.5",

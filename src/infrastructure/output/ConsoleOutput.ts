@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import ora from "ora";
 
-import { IOutput } from "../../core/interfaces/IOutput";
-import { Messages } from "../../Messages";
-import { IConsole } from "../../core/interfaces/IConsole";
+import { IOutput } from "../../core/interfaces/IOutput.js";
+import { Messages } from "../../Messages.js";
+import { IConsole } from "../../core/interfaces/IConsole.js";
 
 export class ConsoleOutput implements IOutput, IConsole {
   debug(message: string, obj?: any | undefined): void {
