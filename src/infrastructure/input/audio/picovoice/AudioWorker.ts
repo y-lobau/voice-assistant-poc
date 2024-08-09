@@ -39,7 +39,7 @@ export class AudioWorker {
     await Promise.all([this.initVoiceRecorder(), this.initPorcupine()]);
 
     if (this.debugWavFile) {
-      this.debugWavFile = new wav.FileWriter(this.debugFilename, {
+      this.debugFile = new wav.FileWriter(this.debugFilename, {
         channels: 1,
         sampleRate: this.porcupine.sampleRate,
         bitDepth: 16,
