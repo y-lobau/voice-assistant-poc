@@ -20,8 +20,10 @@ export class AudioWorker {
   private standbyMode = false;
 
   // Is used for debugging purposes to check what is being recorded
-  private debugFile: wav.FileWriter;
-  private debugFilename = "debug.wav";
+  private debugFullFile: wav.FileWriter;
+  private debugVoiceOnlyFile: wav.FileWriter;
+  private debugFullFilename = "debug-full.wav";
+  private debugVoiceOnlyFilename = "debug-voice-only.wav";
 
   private porcupine: Porcupine;
   private recordRejector;
@@ -39,11 +41,19 @@ export class AudioWorker {
     await Promise.all([this.initVoiceRecorder(), this.initPorcupine()]);
 
     if (this.debugWavFile) {
-      this.debugFile = new wav.FileWriter(this.debugFilename, {
+      this.debugFullFile = new wav.FileWriter(this.debugFullFilename, {
         channels: 1,
         sampleRate: this.porcupine.sampleRate,
         bitDepth: 16,
       });
+      this.debugVoiceOnlyFile = new wav.FileWriter(
+        this.debugVoiceOnlyFilename,
+        {
+          channels: 1,
+          sampleRate: this.porcupine.sampleRate,
+          bitDepth: 16,
+        }
+      );
     }
   }
 
@@ -157,6 +167,11 @@ export class AudioWorker {
 
   private handleAudioData = async ({ speaking, audio }) => {
     // this.console.debug(`speaking: ${speaking}`);
+    if (this.debugWavFile) {
+      this.debugFullFile.write(
+        Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength)
+      );
+    }
 
     try {
       if (!this.isRecording) {
@@ -196,13 +211,13 @@ export class AudioWorker {
       audio.byteOffset,
       audio.byteLength
     );
+    this.ffmpeg.stdin.write(buffer);
 
     if (this.debugWavFile) {
-      this.debugFile.write(
+      this.debugVoiceOnlyFile.write(
         Buffer.from(audio.buffer, audio.byteOffset, audio.byteLength)
       );
     }
-    this.ffmpeg.stdin.write(buffer);
   }
 
   private cleanupFiles(fileNames: string[]) {
@@ -222,7 +237,11 @@ export class AudioWorker {
   }
 
   private cleanupAllFiles() {
-    this.cleanupFiles([this.outputFile, this.debugFilename]);
+    this.cleanupFiles([
+      this.outputFile,
+      this.debugFullFilename,
+      this.debugVoiceOnlyFilename,
+    ]);
   }
 
   private handleSilenceTimeout() {
