@@ -107,14 +107,17 @@ function cleanup(code) {
 
 try {
   // Parse CLI arguments for profile selection
-  const { profile } = await await yargs(hideBin(process.argv)).option(
-    "profile",
-    {
+  const { profile, debug } = await await yargs(hideBin(process.argv))
+    .option("profile", {
       describe: "Predefined profile for the application mode",
       choices: Object.keys(profiles),
       demandOption: true, // Require profile selection
-    }
-  ).argv;
+    })
+    .option("debug", {
+      describe: "Enable debug mode",
+      type: "boolean",
+      default: false,
+    }).argv;
 
   // Select profile based on CLI argument
   const selectedProfile = profiles[profile];
@@ -123,7 +126,7 @@ try {
   const visualization = getVisualization(selectedProfile.visualization);
   visualization.initializing();
 
-  const audioWorker = new AudioWorker(consoleOutput, eventBus);
+  const audioWorker = new AudioWorker(consoleOutput, eventBus, debug);
   await audioWorker.init();
 
   // Input and Output configuration using a factory approach
