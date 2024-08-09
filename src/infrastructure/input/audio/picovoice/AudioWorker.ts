@@ -33,6 +33,10 @@ export class AudioWorker {
     private debugWavFile: boolean = false
   ) {
     this.console.debug("Initializing AudioWorker");
+  }
+
+  public async init() {
+    await Promise.all([this.initVoiceRecorder(), this.initPorcupine()]);
 
     if (this.debugWavFile) {
       this.debugWavFile = new wav.FileWriter(this.debugFilename, {
@@ -41,10 +45,6 @@ export class AudioWorker {
         bitDepth: 16,
       });
     }
-  }
-
-  public init() {
-    return Promise.all([this.initVoiceRecorder(), this.initPorcupine()]);
   }
 
   private async initVoiceRecorder() {
